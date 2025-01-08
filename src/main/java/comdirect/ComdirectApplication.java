@@ -1,4 +1,4 @@
-package com.example.comdirect;
+package comdirect;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

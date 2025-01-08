@@ -33,7 +33,7 @@ javafx {
 }
 
 application {
-    mainClass = 'com.example.comdirect.Main'
+    mainClass = 'comdirect.Main'
 }
 
 tasks.withType(JavaCompile) {

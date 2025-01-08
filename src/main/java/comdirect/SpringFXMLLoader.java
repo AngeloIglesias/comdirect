@@ -1,4 +1,4 @@
-package com.example.comdirect;
+package comdirect;
 
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.ApplicationContext;

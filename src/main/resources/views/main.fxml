@@ -5,7 +5,7 @@
 <?import javafx.scene.web.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.example.comdirect.controllers.MainController">
+            fx:controller="comdirect.controllers.MainController">
     <top>
         <Label text="Comdirect JNLP Automatisierung" BorderPane.alignment="CENTER"/>
     </top>

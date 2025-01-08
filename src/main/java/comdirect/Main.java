@@ -1,4 +1,4 @@
-package com.example.comdirect;
+package comdirect;
 
 import javafx.application.Application;
 import javafx.scene.Parent;

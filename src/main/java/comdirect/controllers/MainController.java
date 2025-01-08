@@ -1,4 +1,4 @@
-package com.example.comdirect.controllers;
+package comdirect.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
