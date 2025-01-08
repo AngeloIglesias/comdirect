@@ -25,6 +25,8 @@ dependencies {
     // Optional: Lombok (für weniger Boilerplate)
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.jodd:jodd-http:6.2.1'
 }
 
 javafx {
