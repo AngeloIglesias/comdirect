@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.comdirect.controllers.MainController">
+    <top>
+        <VBox>
+            <Label text="ConsorsBank Dashboard" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+            <ToolBar fx:id="toolbar">
+                <ComboBox fx:id="wknDropdown" promptText="Select WKN" />
+                <Button fx:id="btnLoadMarketData" text="Load Market Data">
+                    <graphic>
+                        <Label text="📈" style="-fx-font-size: 14px;" />
+                    </graphic>
+                </Button>
+            </ToolBar>
+        </VBox>
+    </top>
+    <center>
+        <!-- SplitPane zur dynamischen Größenanpassung -->
+        <SplitPane orientation="VERTICAL">
+            <!-- Chart Container -->
+            <StackPane fx:id="chartContainer" style="-fx-border-color: black;">
+                <VBox.vgrow>ALWAYS</VBox.vgrow>
+            </StackPane>
+
+            <!-- Tabelle -->
+            <TableView fx:id="marketDataTable" prefHeight="150">
+                <VBox.vgrow>ALWAYS</VBox.vgrow>
+                <columns>
+                    <TableColumn fx:id="columnField" text="Field" />
+                    <TableColumn fx:id="columnValue" text="Value" />
+                </columns>
+            </TableView>
+
+            <!-- Textausgabe -->
+            <TextArea fx:id="txtOutput" prefHeight="100">
+                <VBox.vgrow>ALWAYS</VBox.vgrow>
+            </TextArea>
+        </SplitPane>
+    </center>
+</BorderPane>
