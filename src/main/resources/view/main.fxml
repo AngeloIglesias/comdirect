@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.comdirect.controller.MainController">
+    <top>
+        <Label text="Comdirect JNLP Automatisierung" BorderPane.alignment="CENTER"/>
+    </top>
+    <center>
+        <WebView fx:id="webView" />
+    </center>
+    <bottom>
+        <Button text="Start Application"
+                onAction="#onStartApplicationClick"
+                BorderPane.alignment="CENTER"/>
+    </bottom>
+</BorderPane>
