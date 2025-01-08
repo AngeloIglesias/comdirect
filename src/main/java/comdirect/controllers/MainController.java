@@ -1,16 +1,22 @@
 package comdirect.controllers;
 
+import javafx.animation.PauseTransition;
+import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.util.Duration;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Controller;
 
 import java.io.*;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.URL;
 
 @Controller // Spring Controller für FXML
@@ -27,6 +33,70 @@ public class MainController {
     @FXML
     public void initialize() {
         // WebEngine initialisieren und Login-URL laden
+        webView.getEngine().setJavaScriptEnabled(true);
+        webView.getEngine().setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
+        webView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("New URL: " + newValue);
+        });
+
+//        System.setProperty("javax.net.debug", "ssl");
+//        System.setProperty("javax.net.debug", "all");
+
+//        System.setProperty("javax.net.ssl.trustStore", "pfad/zu/deinem/truststore.jks");
+//        System.setProperty("javax.net.ssl.trustStorePassword", "deinPasswort");
+
+        webView.getEngine().setOnError(event -> System.out.println("JavaScript Error: " + event.getMessage()));
+        webView.getEngine().setOnAlert(event -> System.out.println("JavaScript Alert: " + event.getData()));
+
+        webView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
+            if (newState == Worker.State.SUCCEEDED) {
+                System.out.println("Page loaded completely");
+            }
+        });
+
+        CookieManager cookieManager = new CookieManager();
+        CookieHandler.setDefault(cookieManager);
+
+
+        ////////////////////////////////
+
+//        webEngine.locationProperty().addListener((observable, oldValue, newValue) -> {
+//            System.out.println("Umleitung erkannt: " + newValue);
+//
+//            // Warte auf Bestätigung durch den Nutzer
+//            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+//            alert.setTitle("Umleitung bestätigen");
+//            alert.setHeaderText("Die Seite versucht eine Umleitung durchzuführen:");
+//            alert.setContentText("Neue URL: " + newValue);
+//
+//            // Starte erst nach Bestätigung
+//            alert.showAndWait().ifPresent(response -> {
+//                if (response == ButtonType.OK) {
+//                    webEngine.load(newValue); // Lade die neue URL
+//                } else {
+//                    webEngine.load(oldValue); // Bleibe auf der alten Seite
+//                }
+//            });
+//        });
+
+
+
+//        webEngine.getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
+//            if (newState == Worker.State.SUCCEEDED) {
+//                System.out.println("Seite geladen: " + webEngine.getLocation());
+//
+//                // Verzögerung einfügen (z. B. 2 Sekunden)
+//                PauseTransition delay = new PauseTransition(Duration.seconds(2));
+//                delay.setOnFinished(event -> System.out.println("Fortsetzung nach Verzögerung..."));
+//                delay.play();
+//            }
+//        });
+
+
+
+        ///////////////////////////////
+
+
         webEngine = webView.getEngine();
         String loginUrl = "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1";
         webEngine.load(loginUrl);
@@ -39,6 +109,24 @@ public class MainController {
             }
         });
     }
+
+    @FXML
+    protected void onButtonClicked() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Aktion bestätigen");
+        alert.setHeaderText("Möchtest du diese Anfrage senden?");
+        alert.setContentText("Anfrage: POST an URL xyz");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                System.out.println("Anfrage gesendet!");
+                // Anfrage hier ausführen
+            } else {
+                System.out.println("Anfrage abgebrochen!");
+            }
+        });
+    }
+
 
     /**
      * Verarbeitet das Herunterladen und Starten der JNLP-Datei.
