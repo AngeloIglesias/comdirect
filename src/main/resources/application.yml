@@ -1,0 +1,8 @@
+comdirect:
+  login:
+    url0: "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1"
+    url1: "https://kunde.comdirect.de/itx/tfe/starten?execution=e1s1"
+    url2: "https://kunde.comdirect.de/lp/wt/login?execution=e1s1"
+    postUrl: "https://kunde.comdirect.de/lp/wt/login?execution=e1s1&afterTimeout=true#loginAction"
+    user: ""
+    pin: ""
