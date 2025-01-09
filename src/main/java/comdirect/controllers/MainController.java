@@ -22,14 +22,17 @@ public class MainController {
     @FXML
     private WebView webView;
 
-    @Autowired
-    private BrowseService browseService;
+//    @Autowired
+//    private BrowseService browseService;
 
     private String user;
     private String userPin;
 
     private Playwright playwright;
     private Browser browser;
+
+    private BrowserContext context;
+    private Page page;
 
     @FXML
     public void initialize() {
@@ -38,62 +41,35 @@ public class MainController {
         browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
 
         try {
+            // Browser-Kontext und Seite erstellen
+            context = browser.newContext();
+            page = context.newPage();
+
             // Login-Seite laden
-            try (BrowserContext context = browser.newContext()) {
-                Page page = context.newPage();
-                page.navigate("https://kunde.comdirect.de");
+            page.navigate("https://kunde.comdirect.de");
 
-                // Warte, bis die Seite vollständig geladen ist
-                page.waitForLoadState();
+            // Warte, bis die Seite vollständig geladen ist
+            page.waitForLoadState();
 
-                // Cookie-Banner schließen (falls sichtbar)
-                if (page.locator("button:has-text('Alle akzeptieren')").isVisible()) {
-                    page.click("button:has-text('Alle akzeptieren')");
-                    System.out.println("Cookie-Banner akzeptiert.");
-                }
-
-                // HTML der Seite extrahieren und in der WebView anzeigen
-                String loginPageHtml = page.content();
-                displayHtmlInWebView(loginPageHtml);
+            // Cookie-Banner schließen (falls sichtbar)
+            if (page.locator("button:has-text('Alle akzeptieren')").isVisible()) {
+                page.click("button:has-text('Alle akzeptieren')");
+                System.out.println("Cookie-Banner akzeptiert.");
             }
+
+            // HTML der Seite extrahieren und in der WebView anzeigen
+            String loginPageHtml = page.content();
+            displayHtmlInWebView(loginPageHtml);
         } catch (Exception e) {
             e.printStackTrace();
             showError("Fehler", "Fehler beim Initialisieren", e.getMessage());
         }
     }
 
-
-    @FXML
-    protected void onStartApplicationClick() {
-        try {
-            requestCredentialsFromUser();
-
-            // Login ausführen
-            String responseHtml = performLogin();
-            displayHtmlInWebView(responseHtml);
-
-            // Navigation zur Transaktionsseite
-            String transactionHtml = loadPageWithPlaywright("https://kunde.comdirect.de/transaction-release");
-            displayHtmlInWebView(transactionHtml);
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
-        }
-    }
-
     private String performLogin() {
-        try (BrowserContext context = browser.newContext()) {
-            Page page = context.newPage();
-            page.navigate("https://kunde.comdirect.de");
-
-            // Warte, bis die Seite vollständig geladen ist
+        try {
+            // Warte, bis die Login-Seite vollständig geladen ist
             page.waitForLoadState();
-
-            /// /////////////////////////////
-
-
-
-            /// /////////////////////////////
 
             // Formular ausfüllen
             page.fill("input[name='param1']", user); // Benutzername
@@ -126,13 +102,36 @@ public class MainController {
         }
     }
 
-
     private String loadPageWithPlaywright(String url) {
-        try (BrowserContext context = browser.newContext()) {
-            Page page = context.newPage();
+        try {
             page.navigate(url);
             page.waitForLoadState();
             return page.content();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Fehler beim Laden der Seite: " + e.getMessage();
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @FXML
+    protected void onStartApplicationClick() {
+        try {
+            requestCredentialsFromUser();
+
+            // Login ausführen
+            String responseHtml = performLogin();
+            displayHtmlInWebView(responseHtml);
+
+            // Navigation zur Transaktionsseite
+            String transactionHtml = loadPageWithPlaywright("https://kunde.comdirect.de/transaction-release");
+            displayHtmlInWebView(transactionHtml);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
         }
     }
 
