@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.microsoft.playwright.*;
 import comdirect.config.ComdirectConfig;
-import comdirect.services.BrowseService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -47,6 +46,7 @@ public class MainController {
         try {
             // Browser-Kontext und Seite erstellen
             context = browser.newContext();
+
             page = context.newPage();
 
             // Login-Seite laden
@@ -65,6 +65,7 @@ public class MainController {
             // Bridge zwischen JavaFX-WebView und Playwright erstellen
             WebViewBridge bridge = new WebViewBridge(this);
             JSObject window = (JSObject) webView.getEngine().executeScript("window");
+            System.out.println("Bridge erfolgreich registriert: " + (window != null));
             window.setMember("bridge", bridge);
             /// //
 
@@ -78,6 +79,13 @@ public class MainController {
 //            });
             ///
 
+            webView.getEngine().locationProperty().addListener((obs, oldLocation, newLocation) -> {
+                Platform.runLater(() -> {
+                    System.out.println( "Location in WebView changed: " + newLocation);
+                });
+            });
+
+
 
             // HTML der Seite extrahieren und in der WebView anzeigen
             String loginPageHtml = page.content();
@@ -86,6 +94,13 @@ public class MainController {
             e.printStackTrace();
             showError("Fehler", "Fehler beim Initialisieren", e.getMessage());
         }
+
+        // Run checks:
+        webView.getEngine().setJavaScriptEnabled(true); // Required for Playwright communication
+        // Teste, ob die Bridge erreichbar ist
+        Object testResult = webView.getEngine().executeScript("typeof window.bridge.testConnection === 'function'");
+        System.out.println("Bridge testConnection erreichbar: " + testResult);
+        System.out.println("JavaScript aktiviert: " + webView.getEngine().isJavaScriptEnabled());
     }
 
     private String performLogin() {
@@ -194,25 +209,25 @@ public class MainController {
     }
 
     private void displayHtmlInWebView(String htmlContent) {
-        // JavaScript deaktivieren (z.B. für Links und Formulare) und Befehle an JavaFX-WebView weiterleiten
         Platform.runLater(() -> webView.getEngine().loadContent(
                 htmlContent + "<script>" +
-                        "document.querySelectorAll('a').forEach(link => link.addEventListener('click', e => {" +
-                        "    e.preventDefault();" +
-                        "    window.bridge.onLinkClicked(link.href);" +
-                        "}));" +
-                        "document.querySelectorAll('form').forEach(form => form.addEventListener('submit', e => {" +
-                        "    e.preventDefault();" +
-                        "    let formData = new FormData(form);" +
-                        "    let obj = {};" +
-                        "    formData.forEach((value, key) => { obj[key] = value; });" +
-                        "    window.bridge.onFormSubmitted(JSON.stringify(obj));" +
-                        "}));" +
+                        "const testElement = document.createElement('div');" +
+                        "testElement.innerText = 'JavaScript läuft!';" +
+                        "testElement.style.position = 'fixed';" +
+                        "testElement.style.top = '10px';" +
+                        "testElement.style.left = '10px';" +
+                        "testElement.style.zIndex = '10000';" +
+                        "testElement.style.backgroundColor = 'red';" +
+                        "testElement.style.color = 'white';" +
+                        "testElement.style.padding = '10px';" +
+                        "testElement.style.fontSize = '20px';" +
+                        "document.body.appendChild(testElement);" +
                         "</script>"
         ));
     }
 
     public void handleLinkClick(String href) {
+        System.out.println("Link geklickt: " + href);
         try {
             page.navigate(href); // Playwright übernimmt die Navigation
             String updatedHtml = page.content();
@@ -224,6 +239,7 @@ public class MainController {
     }
 
     public void handleFormSubmission(String formDataJson) {
+        System.out.println("Formular abgeschickt: " + formDataJson);
         try {
             // Deserialisiere das JSON (formDataJson) und fülle Playwright-Formulare
             Map<String, String> formData = new Gson().fromJson(formDataJson, new TypeToken<Map<String, String>>() {}.getType());
@@ -248,5 +264,32 @@ public class MainController {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    public static class WebViewBridge {
+        private MainController controller;
+
+        public WebViewBridge(MainController controller) {
+            this.controller = controller;
+        }
+
+        public void onLinkClicked(String href) {
+            System.out.println("Benutzer hat Link geklickt: " + href);
+            controller.handleLinkClick(href);
+        }
+
+        public void onFormSubmitted(String formData) {
+            System.out.println("Formular wurde abgeschickt: " + formData);
+            controller.handleFormSubmission(formData);
+        }
+
+        public void testConnection() {
+            System.out.println("Bridge connected!");
+        }
+
+        public void logMessage(String message) {
+            System.out.println("WebView Log: " + message);
+        }
+
     }
 }
