@@ -39,13 +39,29 @@ public class MainController {
 
         try {
             // Login-Seite laden
-            String loginPageHtml = loadPageWithPlaywright("https://kunde.comdirect.de");
-            displayHtmlInWebView(loginPageHtml);
+            try (BrowserContext context = browser.newContext()) {
+                Page page = context.newPage();
+                page.navigate("https://kunde.comdirect.de");
+
+                // Warte, bis die Seite vollständig geladen ist
+                page.waitForLoadState();
+
+                // Cookie-Banner schließen (falls sichtbar)
+                if (page.locator("button:has-text('Alle akzeptieren')").isVisible()) {
+                    page.click("button:has-text('Alle akzeptieren')");
+                    System.out.println("Cookie-Banner akzeptiert.");
+                }
+
+                // HTML der Seite extrahieren und in der WebView anzeigen
+                String loginPageHtml = page.content();
+                displayHtmlInWebView(loginPageHtml);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             showError("Fehler", "Fehler beim Initialisieren", e.getMessage());
         }
     }
+
 
     @FXML
     protected void onStartApplicationClick() {
@@ -72,6 +88,12 @@ public class MainController {
 
             // Warte, bis die Seite vollständig geladen ist
             page.waitForLoadState();
+
+            /// /////////////////////////////
+
+
+
+            /// /////////////////////////////
 
             // Formular ausfüllen
             page.fill("input[name='param1']", user); // Benutzername
