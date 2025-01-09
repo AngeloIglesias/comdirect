@@ -70,17 +70,40 @@ public class MainController {
             Page page = context.newPage();
             page.navigate("https://kunde.comdirect.de");
 
-            // Eingaben in das Login-Formular
-            page.fill("#username", user); // Beispiel-Selektor, anpassen!
-            page.fill("#password", userPin);
-            page.click("button[type='submit']"); // Beispiel-Button, anpassen!
-
-            // Warte, bis die Seite geladen ist
+            // Warte, bis die Seite vollständig geladen ist
             page.waitForLoadState();
 
+            // Formular ausfüllen
+            page.fill("input[name='param1']", user); // Benutzername
+            page.fill("input[name='param3']", userPin); // PIN / Passwort
+
+            // Optional: CSRF-Token extrahieren (falls erforderlich)
+            String csrfToken = page.locator("input[name='csfCsrfToken']").getAttribute("value");
+            if (csrfToken != null) {
+                System.out.println("CSRF-Token gefunden: " + csrfToken);
+            }
+
+            // Button klicken, um das Formular abzusenden
+            page.click("a#loginAction"); // Login-Button
+
+            // Warte, bis die Seite erneut geladen ist oder ein Redirect erfolgt
+            page.waitForLoadState();
+
+            // Seite prüfen (z.B. auf Dashboard oder Fehlermeldungen)
+            if (page.url().contains("dashboard")) {
+                System.out.println("Login erfolgreich!");
+            } else if (page.content().contains("Fehler")) {
+                System.out.println("Login fehlgeschlagen. Fehlermeldung auf der Seite gefunden.");
+            }
+
+            // Rückgabe des HTML-Inhalts
             return page.content();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Fehler beim Login: " + e.getMessage();
         }
     }
+
 
     private String loadPageWithPlaywright(String url) {
         try (BrowserContext context = browser.newContext()) {
