@@ -269,8 +269,6 @@ public class MainController {
                 "};";
     }
 
-
-
     private String addBridgeCode()
     {
         return "window.bridge = {" +
@@ -298,25 +296,21 @@ public class MainController {
                 "    }" +
                 "};" +
                 // Logs für Events
-                "document.body.addEventListener('click', function(event) {" +
-                "    console.log('[Event] Klick erkannt:', {" +
-                "        tagName: event.target.tagName," +
-                "        id: event.target.id," +
-                "        classList: [...event.target.classList]" +
-                "    });" +
-                "    if (event.target.tagName === 'A' && event.target.href) {" +
-                "        window.bridge.onLinkClicked(event.target.href);" +
-                "    }" +
-                "});" +
-                "document.body.addEventListener('submit', function(event) {" +
-                "    event.preventDefault();" + // Formularabsenden stoppen, um Logging zu ermöglichen
-                "    const formData = new FormData(event.target);" +
+                "document.querySelectorAll('a').forEach(link => link.addEventListener('click', e => {" +
+                "    e.preventDefault();" + // Verhindert Standardnavigation
+                "    console.log('[Event] Link geklickt:', link.href);" +
+                "    window.bridge.onLinkClicked(link.href);" +
+                "}));" +
+                "document.querySelectorAll('form').forEach(form => form.addEventListener('submit', e => {" +
+                "    e.preventDefault();" + // Verhindert Standardformularabsenden
+                "    const formData = new FormData(form);" +
                 "    const formObject = {};" +
                 "    formData.forEach((value, key) => { formObject[key] = value; });" +
                 "    console.log('[Event] Formular abgeschickt:', formObject);" +
                 "    window.bridge.onFormSubmitted(JSON.stringify(formObject));" +
-                "});";
+                "}));";
     }
+
 
     public void handleLinkClick(String href) {
         System.out.println("Link geklickt: " + href);
