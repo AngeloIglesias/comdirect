@@ -220,17 +220,23 @@ public class MainController {
 
     private String addDebugCode()
     {
-        return "const testElement = document.createElement('div');" +
-                "testElement.innerText = 'JavaScript läuft!';" +
-                "testElement.style.position = 'fixed';" +
-                "testElement.style.top = '10px';" +
-                "testElement.style.left = '10px';" +
-                "testElement.style.zIndex = '10000';" +
-                "testElement.style.backgroundColor = 'red';" +
-                "testElement.style.color = 'white';" +
-                "testElement.style.padding = '10px';" +
-                "testElement.style.fontSize = '20px';" +
-                "document.body.appendChild(testElement);";
+        if(false)
+        {
+            return "const testElement = document.createElement('div');" +
+                    "testElement.innerText = 'JavaScript läuft!';" +
+                    "testElement.style.position = 'fixed';" +
+                    "testElement.style.top = '10px';" +
+                    "testElement.style.left = '10px';" +
+                    "testElement.style.zIndex = '10000';" +
+                    "testElement.style.backgroundColor = 'red';" +
+                    "testElement.style.color = 'white';" +
+                    "testElement.style.padding = '10px';" +
+                    "testElement.style.fontSize = '20px';" +
+                    "document.body.appendChild(testElement);";
+        }
+        else {
+            return "";
+        }
     }
 
     // Gibt console.log-Ausgaben in der WebView als JavaScript-Alerts aus
@@ -243,9 +249,9 @@ public class MainController {
                 "        logDiv.style.position = 'fixed';" +
                 "        logDiv.style.top = '0';" +
                 "        logDiv.style.left = '0';" +
-                "        logDiv.style.width = '100%';" +
-                "        logDiv.style.maxHeight = '200px';" +
-                "        logDiv.style.overflowY = 'auto';" +
+                "        logDiv.style.width = '20%';" + // Nur 30% des Bildschirms breit
+                "        logDiv.style.height = '100%';" + // Gesamte Höhe des Bildschirms
+                "        logDiv.style.overflowY = 'auto';" + // Scrollbar für lange Logs
                 "        logDiv.style.backgroundColor = 'red';" +
                 "        logDiv.style.color = 'white';" +
                 "        logDiv.style.padding = '10px';" +
@@ -257,10 +263,13 @@ public class MainController {
                 "    const logMessage = messages.map(m => typeof m === 'object' ? JSON.stringify(m, null, 2) : m).join(' ');" +
                 "    const logEntry = document.createElement('div');" +
                 "    logEntry.innerText = logMessage;" +
+                "    logEntry.style.marginBottom = '5px';" + // Abstand zwischen Logs
                 "    logDiv.appendChild(logEntry);" +
-                "    logDiv.scrollTop = logDiv.scrollHeight;" +
+                "    logDiv.scrollTop = logDiv.scrollHeight;" + // Automatisch nach unten scrollen
                 "};";
     }
+
+
 
     private String addBridgeCode()
     {
