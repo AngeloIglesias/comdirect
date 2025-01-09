@@ -174,12 +174,15 @@ public class MainController {
     private void displayHtmlInWebView(String htmlContent) {
 //        Platform.runLater(() -> webView.getEngine().loadContent(htmlContent, "text/html"));
 
+        // JavaScript deaktivieren (z.B. für Links und Formulare)
         Platform.runLater(() -> webView.getEngine().loadContent(
                 htmlContent + "<script>" +
                         "document.querySelectorAll('a').forEach(link => link.addEventListener('click', e => e.preventDefault()));" +
                         "document.querySelectorAll('form').forEach(form => form.addEventListener('submit', e => e.preventDefault()));" +
+                        "window.addEventListener('beforeunload', e => { e.preventDefault(); e.returnValue = ''; });" +
                         "</script>"
         ));
+
     }
 
     private void showError(String title, String header, String content) {
