@@ -274,13 +274,48 @@ public class MainController {
     private String addBridgeCode()
     {
         return "window.bridge = {" +
-                "onLinkClicked: function(href) {" +
-                "window.location.href = 'bridge://onLinkClicked?href=' + encodeURIComponent(href);" +
-                "}," +
-                "onFormSubmitted: function(formData) {" +
-                "window.location.href = 'bridge://onFormSubmitted?formData=' + encodeURIComponent(formData);" +
-                "}" +
-                "};";
+                "    onLinkClicked: function(href) {" +
+                "        console.log('[Bridge] Link geklickt:', href);" +
+                "        try {" +
+                "            window.location.href = 'bridge://onLinkClicked?href=' + encodeURIComponent(href);" +
+                "        } catch (error) {" +
+                "            console.error('[Bridge] Fehler beim Verarbeiten von onLinkClicked:', error);" +
+                "        }" +
+                "    }," +
+                "    onFormSubmitted: function(formData) {" +
+                "        console.log('[Bridge] Formular abgeschickt:', formData);" +
+                "        try {" +
+                "            window.location.href = 'bridge://onFormSubmitted?formData=' + encodeURIComponent(formData);" +
+                "        } catch (error) {" +
+                "            console.error('[Bridge] Fehler beim Verarbeiten von onFormSubmitted:', error);" +
+                "        }" +
+                "    }," +
+                "    testConnection: function() {" +
+                "        console.log('[Bridge] Test der Verbindung erfolgreich.');" +
+                "    }," +
+                "    logMessage: function(message) {" +
+                "        console.log('[Bridge Log]:', message);" +
+                "    }" +
+                "};" +
+                // Logs für Events
+                "document.body.addEventListener('click', function(event) {" +
+                "    console.log('[Event] Klick erkannt:', {" +
+                "        tagName: event.target.tagName," +
+                "        id: event.target.id," +
+                "        classList: [...event.target.classList]" +
+                "    });" +
+                "    if (event.target.tagName === 'A' && event.target.href) {" +
+                "        window.bridge.onLinkClicked(event.target.href);" +
+                "    }" +
+                "});" +
+                "document.body.addEventListener('submit', function(event) {" +
+                "    event.preventDefault();" + // Formularabsenden stoppen, um Logging zu ermöglichen
+                "    const formData = new FormData(event.target);" +
+                "    const formObject = {};" +
+                "    formData.forEach((value, key) => { formObject[key] = value; });" +
+                "    console.log('[Event] Formular abgeschickt:', formObject);" +
+                "    window.bridge.onFormSubmitted(JSON.stringify(formObject));" +
+                "});";
     }
 
     public void handleLinkClick(String href) {
