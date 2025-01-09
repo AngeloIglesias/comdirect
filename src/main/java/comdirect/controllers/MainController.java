@@ -1,5 +1,7 @@
 package comdirect.controllers;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.microsoft.playwright.*;
 import comdirect.config.ComdirectConfig;
 import comdirect.services.BrowseService;
@@ -8,9 +10,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -56,6 +60,24 @@ public class MainController {
                 page.click("button:has-text('Alle akzeptieren')");
                 System.out.println("Cookie-Banner akzeptiert.");
             }
+
+            /// ///
+            // Bridge zwischen JavaFX-WebView und Playwright erstellen
+            WebViewBridge bridge = new WebViewBridge(this);
+            JSObject window = (JSObject) webView.getEngine().executeScript("window");
+            window.setMember("bridge", bridge);
+            /// //
+
+            /// ///
+            // Zusätzlicher Schutz: Blockiere externe Navigation
+//            page.onRequest(request -> {
+//                if (!request.url().startsWith("https://kunde.comdirect.de")) {
+//                    System.out.println("Blockierte Anfrage: " + request.url());
+//                    request.abort();
+//                }
+//            });
+            ///
+
 
             // HTML der Seite extrahieren und in der WebView anzeigen
             String loginPageHtml = page.content();
@@ -172,18 +194,53 @@ public class MainController {
     }
 
     private void displayHtmlInWebView(String htmlContent) {
-//        Platform.runLater(() -> webView.getEngine().loadContent(htmlContent, "text/html"));
-
-        // JavaScript deaktivieren (z.B. für Links und Formulare)
+        // JavaScript deaktivieren (z.B. für Links und Formulare) und Befehle an JavaFX-WebView weiterleiten
         Platform.runLater(() -> webView.getEngine().loadContent(
                 htmlContent + "<script>" +
-                        "document.querySelectorAll('a').forEach(link => link.addEventListener('click', e => e.preventDefault()));" +
-                        "document.querySelectorAll('form').forEach(form => form.addEventListener('submit', e => e.preventDefault()));" +
-                        "window.addEventListener('beforeunload', e => { e.preventDefault(); e.returnValue = ''; });" +
+                        "document.querySelectorAll('a').forEach(link => link.addEventListener('click', e => {" +
+                        "    e.preventDefault();" +
+                        "    window.bridge.onLinkClicked(link.href);" +
+                        "}));" +
+                        "document.querySelectorAll('form').forEach(form => form.addEventListener('submit', e => {" +
+                        "    e.preventDefault();" +
+                        "    let formData = new FormData(form);" +
+                        "    let obj = {};" +
+                        "    formData.forEach((value, key) => { obj[key] = value; });" +
+                        "    window.bridge.onFormSubmitted(JSON.stringify(obj));" +
+                        "}));" +
                         "</script>"
         ));
-
     }
+
+    public void handleLinkClick(String href) {
+        try {
+            page.navigate(href); // Playwright übernimmt die Navigation
+            String updatedHtml = page.content();
+            displayHtmlInWebView(updatedHtml);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Fehler", "Link-Navigation fehlgeschlagen", e.getMessage());
+        }
+    }
+
+    public void handleFormSubmission(String formDataJson) {
+        try {
+            // Deserialisiere das JSON (formDataJson) und fülle Playwright-Formulare
+            Map<String, String> formData = new Gson().fromJson(formDataJson, new TypeToken<Map<String, String>>() {}.getType());
+            for (Map.Entry<String, String> entry : formData.entrySet()) {
+                page.fill("input[name='" + entry.getKey() + "']", entry.getValue());
+            }
+
+            // Formular abschicken (z. B. durch einen Submit-Button-Klick)
+            page.click("button[type='submit']");
+            String updatedHtml = page.content();
+            displayHtmlInWebView(updatedHtml);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Fehler", "Formular-Verarbeitung fehlgeschlagen", e.getMessage());
+        }
+    }
+
 
     private void showError(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
