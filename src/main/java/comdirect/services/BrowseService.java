@@ -45,6 +45,11 @@ public class BrowseService {
      * @throws Exception Falls ein Fehler auftritt
      */
     public String performLogin(String actionUrl, String username, String pin) throws Exception {
+        // Print the data
+        System.out.println("actionUrl: " + actionUrl);
+        // Print the cookies
+        System.out.println("Cookies: " + cookies);
+
         Connection.Response response = Jsoup.connect(actionUrl)
                 .userAgent(userAgent)
                 .data("zugangsnummer", username)

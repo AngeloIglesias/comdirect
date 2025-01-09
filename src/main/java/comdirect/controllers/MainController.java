@@ -1,14 +1,13 @@
 package comdirect.controllers;
 
+import com.microsoft.playwright.*;
 import comdirect.config.ComdirectConfig;
 import comdirect.services.BrowseService;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.web.WebView;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -29,11 +28,18 @@ public class MainController {
     private String user;
     private String userPin;
 
+    private Playwright playwright;
+    private Browser browser;
+
     @FXML
     public void initialize() {
+        // Playwright initialisieren
+        playwright = Playwright.create();
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+
         try {
             // Login-Seite laden
-            String loginPageHtml = browseService.loadLoginPage();
+            String loginPageHtml = loadPageWithPlaywright("https://kunde.comdirect.de");
             displayHtmlInWebView(loginPageHtml);
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,146 +47,92 @@ public class MainController {
         }
     }
 
-    /**
-     * Beispielaktion für den Button-Klick.
-     */
     @FXML
     protected void onStartApplicationClick() {
-//        showInfo("Information", "Anmeldung wird durchgeführt!", "Bitte warten...");
-
-        // Login durchführen
-        performLoginAndDisplayResponse();
-
-        // Navigation zur Transaktionsseite
-        navigateToTransactionPage();
-    }
-
-    /**
-     * Führt die Anmeldung aus und zeigt die Antwortseite in der WebView an.
-     */
-    private void performLoginAndDisplayResponse() {
         try {
             requestCredentialsFromUser();
-            String actionUrl;
 
-//            // Ziel-URL des "Anmelden"-Buttons extrahieren
-//            String loginPageHtml = browseService.loadLoginPage();
-//            Document document = Jsoup.parse(loginPageHtml);
-//            Element loginForm = document.selectFirst("form");
-//            if (loginForm == null) {
-//                throw new IllegalStateException("Login-Formular nicht gefunden.");
-//            }
-//            String actionUrl = loginForm.attr("action");
-//            if (!actionUrl.startsWith("http")) {
-//                actionUrl = "https://kunde.comdirect.de" + actionUrl; // Absolute URL bilden
-//            }
-
-            // Login-Anfrage senden
-            actionUrl = config.getPostUrl(); // ToDo: Extract from HTML
-            String responseHtml = browseService.performLogin(actionUrl, user, userPin);
-
-            // Antwortseite in der WebView anzeigen
+            // Login ausführen
+            String responseHtml = performLogin();
             displayHtmlInWebView(responseHtml);
+
+            // Navigation zur Transaktionsseite
+            String transactionHtml = loadPageWithPlaywright("https://kunde.comdirect.de/transaction-release");
+            displayHtmlInWebView(transactionHtml);
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Fehler", "Login fehlgeschlagen", e.getMessage());
+            showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
         }
     }
 
-    /**
-     * Navigiert zur Transaktionsseite.
-     */
-    private void navigateToTransactionPage() {
-        try {
-            String transactionPageHtml = browseService.navigateToPage("https://kunde.comdirect.de/transaction-release");
-            displayHtmlInWebView(transactionPageHtml);
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("Fehler", "Navigation zur Transaktionsseite fehlgeschlagen", e.getMessage());
+    private String performLogin() {
+        try (BrowserContext context = browser.newContext()) {
+            Page page = context.newPage();
+            page.navigate("https://kunde.comdirect.de");
+
+            // Eingaben in das Login-Formular
+            page.fill("#username", user); // Beispiel-Selektor, anpassen!
+            page.fill("#password", userPin);
+            page.click("button[type='submit']"); // Beispiel-Button, anpassen!
+
+            // Warte, bis die Seite geladen ist
+            page.waitForLoadState();
+
+            return page.content();
         }
     }
 
-    /**
-     * Fordert den Benutzer zur Eingabe der PIN auf.
-     */
+    private String loadPageWithPlaywright(String url) {
+        try (BrowserContext context = browser.newContext()) {
+            Page page = context.newPage();
+            page.navigate(url);
+            page.waitForLoadState();
+            return page.content();
+        }
+    }
+
     private void requestCredentialsFromUser() {
-
-        if( config.getUser() == null || config.getUser().isEmpty() ) {
+        if (config.getUser() == null || config.getUser().isEmpty()) {
             TextInputDialog userDialog = new TextInputDialog();
             userDialog.setTitle("Zugangsnummer erforderlich");
             userDialog.setHeaderText("Bitte geben Sie Ihre Zugangsnummer ein:");
             userDialog.setContentText("Zugangsnummer:");
-
-            // Eingabe des Benutzers abrufen
             Optional<String> result = userDialog.showAndWait();
             result.ifPresentOrElse(
                     userNumber -> user = userNumber,
                     () -> {
-                        // Beende die Anwendung, falls keine Zugangsnummer eingegeben wurde
                         showError("Fehler", "Keine Zugangsnummer eingegeben", "Die Anwendung wird beendet.");
                         System.exit(1);
                     }
             );
-        }
-        else {
+        } else {
             user = config.getUser();
         }
 
-        if( config.getPin() == null || config.getPin().isEmpty() ) {
+        if (config.getPin() == null || config.getPin().isEmpty()) {
             TextInputDialog pinDialog = new TextInputDialog();
             pinDialog.setTitle("PIN erforderlich");
             pinDialog.setHeaderText("Bitte geben Sie Ihre PIN ein:");
             pinDialog.setContentText("PIN:");
-
-            // Eingabe des Benutzers abrufen
             Optional<String> result = pinDialog.showAndWait();
             result.ifPresentOrElse(
                     pin -> userPin = pin,
                     () -> {
-                        // Beende die Anwendung, falls keine PIN eingegeben wurde
                         showError("Fehler", "Keine PIN eingegeben", "Die Anwendung wird beendet.");
                         System.exit(1);
                     }
             );
-        }
-        else {
+        } else {
             userPin = config.getPin();
         }
     }
 
-    /**
-     * Zeigt HTML-Inhalt in der WebView an.
-     *
-     * @param htmlContent HTML-Inhalt als String
-     */
     private void displayHtmlInWebView(String htmlContent) {
-        webView.getEngine().loadContent(htmlContent, "text/html");
+        Platform.runLater(() -> webView.getEngine().loadContent(htmlContent, "text/html"));
     }
 
-    /**
-     * Zeigt eine Fehlermeldung in einem Dialog an.
-     *
-     * @param title   Titel der Fehlermeldung
-     * @param header  Kopfzeile der Fehlermeldung
-     * @param content Inhalt der Fehlermeldung
-     */
     private void showError(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    /**
-     * Zeigt eine Erfolgsnachricht in einem Dialog an.
-     *
-     * @param title   Titel der Nachricht
-     * @param header  Kopfzeile der Nachricht
-     * @param content Inhalt der Nachricht
-     */
-    private void showInfo(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
