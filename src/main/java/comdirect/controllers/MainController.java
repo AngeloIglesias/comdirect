@@ -211,19 +211,67 @@ public class MainController {
     private void displayHtmlInWebView(String htmlContent) {
         Platform.runLater(() -> webView.getEngine().loadContent(
                 htmlContent + "<script>" +
-                        "const testElement = document.createElement('div');" +
-                        "testElement.innerText = 'JavaScript läuft!';" +
-                        "testElement.style.position = 'fixed';" +
-                        "testElement.style.top = '10px';" +
-                        "testElement.style.left = '10px';" +
-                        "testElement.style.zIndex = '10000';" +
-                        "testElement.style.backgroundColor = 'red';" +
-                        "testElement.style.color = 'white';" +
-                        "testElement.style.padding = '10px';" +
-                        "testElement.style.fontSize = '20px';" +
-                        "document.body.appendChild(testElement);" +
+                        addDebugCode() +
+                        addConsoleLogCode() +
+                        addBridgeCode() +
                         "</script>"
         ));
+    }
+
+    private String addDebugCode()
+    {
+        return "const testElement = document.createElement('div');" +
+                "testElement.innerText = 'JavaScript läuft!';" +
+                "testElement.style.position = 'fixed';" +
+                "testElement.style.top = '10px';" +
+                "testElement.style.left = '10px';" +
+                "testElement.style.zIndex = '10000';" +
+                "testElement.style.backgroundColor = 'red';" +
+                "testElement.style.color = 'white';" +
+                "testElement.style.padding = '10px';" +
+                "testElement.style.fontSize = '20px';" +
+                "document.body.appendChild(testElement);";
+    }
+
+    // Gibt console.log-Ausgaben in der WebView als JavaScript-Alerts aus
+    private String addConsoleLogCode() {
+        return "console.log = function(...messages) {" +
+                "    let logDiv = document.getElementById('logDiv');" +
+                "    if (!logDiv) {" +
+                "        logDiv = document.createElement('div');" +
+                "        logDiv.id = 'logDiv';" +
+                "        logDiv.style.position = 'fixed';" +
+                "        logDiv.style.top = '0';" +
+                "        logDiv.style.left = '0';" +
+                "        logDiv.style.width = '100%';" +
+                "        logDiv.style.maxHeight = '200px';" +
+                "        logDiv.style.overflowY = 'auto';" +
+                "        logDiv.style.backgroundColor = 'red';" +
+                "        logDiv.style.color = 'white';" +
+                "        logDiv.style.padding = '10px';" +
+                "        logDiv.style.fontSize = '14px';" +
+                "        logDiv.style.zIndex = '9999';" +
+                "        logDiv.style.whiteSpace = 'pre-wrap';" + // Ermöglicht Zeilenumbrüche
+                "        document.body.appendChild(logDiv);" +
+                "    }" +
+                "    const logMessage = messages.map(m => typeof m === 'object' ? JSON.stringify(m, null, 2) : m).join(' ');" +
+                "    const logEntry = document.createElement('div');" +
+                "    logEntry.innerText = logMessage;" +
+                "    logDiv.appendChild(logEntry);" +
+                "    logDiv.scrollTop = logDiv.scrollHeight;" +
+                "};";
+    }
+
+    private String addBridgeCode()
+    {
+        return "window.bridge = {" +
+                "onLinkClicked: function(href) {" +
+                "window.location.href = 'bridge://onLinkClicked?href=' + encodeURIComponent(href);" +
+                "}," +
+                "onFormSubmitted: function(formData) {" +
+                "window.location.href = 'bridge://onFormSubmitted?formData=' + encodeURIComponent(formData);" +
+                "}" +
+                "};";
     }
 
     public void handleLinkClick(String href) {
