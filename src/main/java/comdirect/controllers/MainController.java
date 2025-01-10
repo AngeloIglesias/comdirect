@@ -67,8 +67,12 @@ public class MainController {
         if (isLoading) return;
         isLoading = true;
         Platform.runLater(() -> {
-            webView.getEngine().loadContent(appendScripts(htmlContent));
-            isLoading = false;
+            try {
+                webView.getEngine().loadContent(appendScripts(htmlContent));
+            } finally {
+                // isLoading zurücksetzen, auch wenn ein Fehler auftritt
+                isLoading = false;
+            }
         });
     }
 
@@ -106,8 +110,17 @@ public class MainController {
 
     public void handleLinkClick(String href) {
         System.out.println("Link geklickt: " + href);
+
         try {
-            displayHtmlInWebView(browseService.loadPage(resolveUrl(href)));
+            String absoluteUrl = resolveUrl(href);
+            System.out.println("Absolute URL: " + absoluteUrl);
+
+            if (!isValidUrl(absoluteUrl)) {
+                BrowserUtils.showError("Fehler", "Ungültige URL", "Die URL \"" + absoluteUrl + "\" ist ungültig.");
+                return;
+            }
+
+            displayHtmlInWebView(browseService.loadPage(absoluteUrl));
         } catch (Exception e) {
             e.printStackTrace();
             BrowserUtils.showError("Fehler", "Link-Navigation fehlgeschlagen", e.getMessage());
@@ -158,17 +171,36 @@ public class MainController {
 
     private String resolveUrl(String href) {
         try {
-            // Überprüfe, ob der Link bereits eine absolute URL ist
+            if (href.startsWith("//")) {
+                // Protokoll-relative URL ergänzen
+                return "https:" + href;
+            }
+
+            if (href.startsWith("#")) {
+                // Interner Anker, füge zur aktuellen URL hinzu
+                return browseService.page.url() + href;
+            }
+
             if (href.startsWith("http://") || href.startsWith("https://")) {
+                // Absolute URL
                 return href;
             }
 
-            // Hole die Basis-URL der aktuellen Seite
-            String baseUrl = browseService.page.url(); // Playwright kann die aktuelle URL abrufen
+            // Relative URL in absolute URL umwandeln
+            String baseUrl = browseService.page.url();
             return new java.net.URL(new java.net.URL(baseUrl), href).toString();
         } catch (Exception e) {
             System.err.println("Fehler beim Erstellen der absoluten URL: " + e.getMessage());
             return href; // Fallback auf den Original-Link
+        }
+    }
+    private boolean isValidUrl(String url) {
+        try {
+            new java.net.URI(url);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Ungültige URL: " + url);
+            return false;
         }
     }
 }
