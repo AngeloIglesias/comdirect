@@ -46,7 +46,6 @@ public class MainController {
         try {
             // Browser-Kontext und Seite erstellen
             context = browser.newContext();
-
             page = context.newPage();
 
             // Login-Seite laden
@@ -61,39 +60,24 @@ public class MainController {
                 System.out.println("Cookie-Banner akzeptiert.");
             }
 
-            webView.getEngine().locationProperty().addListener((obs, oldLocation, newLocation) -> {
-                Platform.runLater(() -> {
-                    System.out.println( "Location in WebView changed: " + newLocation);
-                });
-            });
-
             // HTML der Seite extrahieren und in der WebView anzeigen
             String loginPageHtml = page.content();
             displayHtmlInWebView(loginPageHtml);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-            /// WebView-Initialisierung
+            /// WebView-Initialisierung (Nur einmal)
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
             webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
                 if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
                     // Seite wurde vollständig geladen
                     System.out.println("Seite vollständig geladen, registriere Bridge und JavaScript.");
 
-                    WebViewBridge bridge = new WebViewBridge(this);
+                    // Registriere die Bridge nur, wenn sie nicht bereits registriert ist
                     JSObject window = (JSObject) webView.getEngine().executeScript("window");
-                    System.out.println("Bridge erfolgreich registriert: " + (window != null));
+                    WebViewBridge bridge = new WebViewBridge(this);
                     window.setMember("bridge", bridge);
                 }
             });
-
-            /// /// ToDo: Remove this block( fails to load, if removed) ///
-            // Bridge zwischen JavaFX-WebView und Playwright erstellen
-            WebViewBridge bridge = new WebViewBridge(this);
-            JSObject window = (JSObject) webView.getEngine().executeScript("window");
-            System.out.println("Bridge erfolgreich registriert: " + (window != null));
-            window.setMember("bridge", bridge);
-            /// //
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -101,11 +85,7 @@ public class MainController {
         }
 
         // Run checks:
-        webView.getEngine().setJavaScriptEnabled(true); // Required for Playwright communication
-        // Teste, ob die Bridge erreichbar ist
-        Object testResult = webView.getEngine().executeScript("typeof window.bridge.testConnection === 'function'");
-        System.out.println("Bridge testConnection erreichbar: " + testResult);
-        System.out.println("JavaScript aktiviert: " + webView.getEngine().isJavaScriptEnabled());
+        webView.getEngine().setJavaScriptEnabled(true); // JavaScript aktivieren
     }
 
     private String performLogin() {
