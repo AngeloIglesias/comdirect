@@ -61,12 +61,22 @@ public class MainController {
                 System.out.println("Cookie-Banner akzeptiert.");
             }
 
+            webView.getEngine().locationProperty().addListener((obs, oldLocation, newLocation) -> {
+                Platform.runLater(() -> {
+                    System.out.println( "Location in WebView changed: " + newLocation);
+                });
+            });
+
+            // HTML der Seite extrahieren und in der WebView anzeigen
+            String loginPageHtml = page.content();
+            displayHtmlInWebView(loginPageHtml);
+
             /// ///
             // Bridge zwischen JavaFX-WebView und Playwright erstellen
-            WebViewBridge bridge = new WebViewBridge(this);
-            JSObject window = (JSObject) webView.getEngine().executeScript("window");
-            System.out.println("Bridge erfolgreich registriert: " + (window != null));
-            window.setMember("bridge", bridge);
+//            WebViewBridge bridge = new WebViewBridge(this);
+//            JSObject window = (JSObject) webView.getEngine().executeScript("window");
+//            System.out.println("Bridge erfolgreich registriert: " + (window != null));
+//            window.setMember("bridge", bridge);
             /// //
 
             /// ///
@@ -78,18 +88,6 @@ public class MainController {
 //                }
 //            });
             ///
-
-            webView.getEngine().locationProperty().addListener((obs, oldLocation, newLocation) -> {
-                Platform.runLater(() -> {
-                    System.out.println( "Location in WebView changed: " + newLocation);
-                });
-            });
-
-
-
-            // HTML der Seite extrahieren und in der WebView anzeigen
-            String loginPageHtml = page.content();
-            displayHtmlInWebView(loginPageHtml);
         } catch (Exception e) {
             e.printStackTrace();
             showError("Fehler", "Fehler beim Initialisieren", e.getMessage());
