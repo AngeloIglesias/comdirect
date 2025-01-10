@@ -13,23 +13,7 @@ import java.util.Optional;
 public class BrowserUtils {
     static String addDebugCode()
     {
-        if(false)
-        {
-            return "const testElement = document.createElement('div');" +
-                    "testElement.innerText = 'JavaScript läuft!';" +
-                    "testElement.style.position = 'fixed';" +
-                    "testElement.style.top = '10px';" +
-                    "testElement.style.left = '10px';" +
-                    "testElement.style.zIndex = '10000';" +
-                    "testElement.style.backgroundColor = 'red';" +
-                    "testElement.style.color = 'white';" +
-                    "testElement.style.padding = '10px';" +
-                    "testElement.style.fontSize = '20px';" +
-                    "document.body.appendChild(testElement);";
-        }
-        else {
-            return "";
-        }
+        return "";
     }
 
     // Gibt console.log-Ausgaben in der WebView als JavaScript-Alerts aus
@@ -62,8 +46,7 @@ public class BrowserUtils {
                 "};";
     }
 
-    static String addBridgeCode()
-    {
+    static String addBridgeCode() {
         return "window.bridge = {" +
                 "    onLinkClicked: function(href) {" +
                 "        console.log('[Bridge] Link geklickt:', href);" +
@@ -80,12 +63,6 @@ public class BrowserUtils {
                 "        } catch (error) {" +
                 "            console.error('[Bridge] Fehler beim Verarbeiten von onFormSubmitted:', error);" +
                 "        }" +
-                "    }," +
-                "    testConnection: function() {" +
-                "        console.log('[Bridge] Test der Verbindung erfolgreich.');" +
-                "    }," +
-                "    logMessage: function(message) {" +
-                "        console.log('[Bridge Log]:', message);" +
                 "    }" +
                 "};" +
                 // Logs für Events
@@ -103,6 +80,7 @@ public class BrowserUtils {
                 "    window.bridge.onFormSubmitted(JSON.stringify(formObject));" +
                 "}));";
     }
+
 
     static void requestCredentialsFromUser(ComdirectConfig config1) {
         if (config1.getLogin().getUser() == null || config1.getLogin().getUser().isEmpty()) {
