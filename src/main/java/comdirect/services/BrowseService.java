@@ -106,17 +106,19 @@ public class BrowseService {
     }
 
     public String loadPage(String url) {
-        // Seite laden
-        page.navigate(url);
+        try {
+            // Navigiere zur URL
+            page.navigate(url);
 
-        // Warte, bis die Seite vollständig geladen ist
-        page.waitForLoadState();
+            // Warte, bis die Seite vollständig geladen ist
+            page.waitForLoadState();
 
-//        // Cookie-Banner schließen (falls sichtbar)
-//        BrowserUtils.closeCookieBanner(page, autoCloseCookieBanner);
-
-        // HTML der Seite extrahieren und in der WebView anzeigen
-        return page.content();
+            // Gebe den HTML-Inhalt zurück
+            return page.content();
+        } catch (Exception e) {
+            System.err.println("Fehler beim Laden der Seite: " + e.getMessage());
+            return "<html><body><h1>Fehler</h1><p>Die Seite konnte nicht geladen werden.</p></body></html>";
+        }
     }
 
     public String postForm(String formDataJson) {
