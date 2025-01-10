@@ -86,17 +86,13 @@ public class MainController {
 
     @FXML
     protected void onStartApplicationClick() {
-        try {
+        try { // ToDo: Implement the auto login, download and webstart functionality, here
             BrowserUtils.requestCredentialsFromUser(config);
 
             // Login ausführen
             String responseHtml = browseService.performLogin(config.getLogin().getUser(), config.getLogin().getPin());
             displayHtmlInWebView(responseHtml);
 
-            // ToDo: What ist the sense of this code?
-//            // Navigation zur Transaktionsseite
-//            String transactionHtml = loadPageWithPlaywright("https://kunde.comdirect.de/transaction-release");
-//            displayHtmlInWebView(transactionHtml);
         } catch (Exception e) {
             e.printStackTrace();
             BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
