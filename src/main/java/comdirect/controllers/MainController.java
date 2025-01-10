@@ -71,12 +71,25 @@ public class MainController {
             String loginPageHtml = page.content();
             displayHtmlInWebView(loginPageHtml);
 
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /// WebView-Initialisierung
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    // Seite wurde vollständig geladen
+                    System.out.println("Seite vollständig geladen, registriere Bridge und JavaScript.");
+
+
+                }
+            });
+
             /// ///
             // Bridge zwischen JavaFX-WebView und Playwright erstellen
-//            WebViewBridge bridge = new WebViewBridge(this);
-//            JSObject window = (JSObject) webView.getEngine().executeScript("window");
-//            System.out.println("Bridge erfolgreich registriert: " + (window != null));
-//            window.setMember("bridge", bridge);
+            WebViewBridge bridge = new WebViewBridge(this);
+            JSObject window = (JSObject) webView.getEngine().executeScript("window");
+            System.out.println("Bridge erfolgreich registriert: " + (window != null));
+            window.setMember("bridge", bridge);
             /// //
 
             /// ///
