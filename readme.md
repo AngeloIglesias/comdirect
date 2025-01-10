@@ -107,3 +107,6 @@ graph TD
 ## Autor
 Entwickelt von Angelo Iglesias
 
+## Links
+- [Making Upcalls from JavaScript to JavaFX](https://docs.oracle.com/javase/8/javafx/embedded-browser-tutorial/js-javafx.htm)
+
