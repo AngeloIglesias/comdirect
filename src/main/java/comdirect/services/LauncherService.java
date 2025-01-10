@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.net.URL;
 
+/**
+ * Service zum Herunterladen und Starten von JNLP-Dateien. (Java Web Start)
+ */
 @Service
 public class LauncherService {
 

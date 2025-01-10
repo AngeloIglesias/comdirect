@@ -7,6 +7,9 @@ import javafx.scene.control.TextInputDialog;
 
 import java.util.Optional;
 
+/**
+ * Todo: Sollten nach DDD in dedizierte Service-Klassen, z. B. JavaScriptService oder WebViewService verschoben werden.
+ */
 public class BrowserUtils {
     static String addDebugCode()
     {

@@ -7,6 +7,7 @@ import comdirect.config.ComdirectConfig;
 import comdirect.controllers.BrowserUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.util.Map;
 
 @Service
@@ -34,7 +35,7 @@ public class BrowseService {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Construction
+    /// Construction & Teardown
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public BrowseService(ComdirectConfig config) {
@@ -52,6 +53,18 @@ public class BrowseService {
         context = browser.newContext();
         page = context.newPage();
     }
+
+    /**
+     * Cleanup method to close the Playwright browser and context. Avoids memory leaks.
+     */
+    @PreDestroy
+    public void cleanUp() {
+        if (page != null) page.close();
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
+    }
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Playwright Interactions

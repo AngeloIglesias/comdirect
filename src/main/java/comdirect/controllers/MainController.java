@@ -27,6 +27,7 @@ public class MainController {
 
     @Autowired
     private BrowseService browseService;
+    private boolean isLoading;
 
     @FXML
     public void initialize() {
@@ -60,14 +61,21 @@ public class MainController {
     /// WebView-Interaktionen
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void displayHtmlInWebView(String htmlContent) {
-        Platform.runLater(() -> webView.getEngine().loadContent(
-                htmlContent + "<script>" +
-                        (enableJavaScriptDebug ? BrowserUtils.addDebugCode() : "") +
-                        (enableJavaScriptConsole ? BrowserUtils.addConsoleLogCode() : "") +
-                        BrowserUtils.addBridgeCode() +
-                        "</script>"
-        ));
+    private synchronized void displayHtmlInWebView(String htmlContent) {
+        if (isLoading) return;
+        isLoading = true;
+        Platform.runLater(() -> {
+            webView.getEngine().loadContent(appendScripts(htmlContent));
+            isLoading = false;
+        });
+    }
+
+    private String appendScripts (String htmlContent) {
+        return htmlContent + "<script>" +
+            (enableJavaScriptDebug ? BrowserUtils.addDebugCode() : "") +
+            (enableJavaScriptConsole ? BrowserUtils.addConsoleLogCode() : "") +
+            BrowserUtils.addBridgeCode() +
+            "</script>";
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
