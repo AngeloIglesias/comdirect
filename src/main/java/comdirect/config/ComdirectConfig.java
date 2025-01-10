@@ -1,21 +1,37 @@
 package comdirect.config;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+@Data
 @Component
-@ConfigurationProperties(prefix = "comdirect.login")
-@Getter
-@Setter
+@ConfigurationProperties(prefix = "comdirect")
 public class ComdirectConfig {
 
-    private String url0;
-    private String url1;
-    private String url2;
-    private String user;
-    private String pin;
-    private String postUrl;
+    private BrowserConfig browser;
+    private UiConfig ui;
+    private LoginConfig login;
+
+    @Data
+    public static class BrowserConfig {
+        private boolean autoCloseCookieBanner;
+        private boolean headless;
+    }
+
+    @Data
+    public static class UiConfig {
+        private boolean enableJavascriptDebug;
+        private boolean enableJavascriptConsole;
+    }
+
+    @Data
+    public static class LoginConfig {
+        private String url0;
+        private String url1;
+        private String url2;
+        private String postUrl;
+        private String user;
+        private String pin;
+    }
 }

@@ -1,5 +1,10 @@
 comdirect:
-  autoCloseCookieBanner: true
+  browser:
+    autoCloseCookieBanner: true
+    headless: true
+  ui:
+    enableJavascriptDebug: true
+    enableJavascriptConsole: true
   login:
     url0: "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1"
     url1: "https://kunde.comdirect.de/itx/tfe/starten?execution=e1s1"

@@ -1,8 +1,5 @@
 package comdirect.controllers;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.microsoft.playwright.*;
 import comdirect.config.ComdirectConfig;
 import comdirect.services.BrowseService;
 import javafx.application.Platform;
@@ -10,10 +7,17 @@ import javafx.fxml.FXML;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class MainController {
+
+    @Value("${comdirect.ui.enable-javascript-console}")
+    boolean enableJavaScriptConsole;
+
+    @Value("${comdirect.ui.enable-javascript-debug}")
+    boolean enableJavaScriptDebug;
 
     @Autowired
     private ComdirectConfig config;
@@ -30,10 +34,8 @@ public class MainController {
         /// WebView-Initialisierung
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        webView.getEngine().setJavaScriptEnabled(true); // Make sure JavaScript is enabled!
         try {
-            // HTML der Seite extrahieren und in der WebView anzeigen
-            displayHtmlInWebView(browseService.getLoginPage());
-
             webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
                 if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
                     // Seite wurde vollständig geladen
@@ -51,8 +53,7 @@ public class MainController {
             BrowserUtils.showError("Fehler", "Fehler beim Initialisieren", e.getMessage());
         }
 
-        // Run checks:
-        webView.getEngine().setJavaScriptEnabled(true); // JavaScript aktivieren
+        displayHtmlInWebView(browseService.getLoginPage());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,15 +63,15 @@ public class MainController {
     private void displayHtmlInWebView(String htmlContent) {
         Platform.runLater(() -> webView.getEngine().loadContent(
                 htmlContent + "<script>" +
-                        BrowserUtils.addDebugCode() +
-                        BrowserUtils.addConsoleLogCode() +
+                        (enableJavaScriptDebug ? BrowserUtils.addDebugCode() : "") +
+                        (enableJavaScriptConsole ? BrowserUtils.addConsoleLogCode() : "") +
                         BrowserUtils.addBridgeCode() +
                         "</script>"
         ));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Event-Handler für WebView-Interaktionen
+    /// Event handlers for JavaFX controls
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @FXML
@@ -79,7 +80,7 @@ public class MainController {
             BrowserUtils.requestCredentialsFromUser(config);
 
             // Login ausführen
-            String responseHtml = browseService.performLogin(config.getUser(), config.getPin());
+            String responseHtml = browseService.performLogin(config.getLogin().getUser(), config.getLogin().getPin());
             displayHtmlInWebView(responseHtml);
 
             // ToDo: What ist the sense of this code?
@@ -92,6 +93,10 @@ public class MainController {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Event handlers for WebView interactions
+    /// These methods are called from JavaScript code in the WebView (see BrowserUtils.addBridgeCode())
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void handleLinkClick(String href) {
         System.out.println("Link geklickt: " + href);
@@ -112,6 +117,4 @@ public class MainController {
             BrowserUtils.showError("Fehler", "Formular-Verarbeitung fehlgeschlagen", e.getMessage());
         }
     }
-
-
 }

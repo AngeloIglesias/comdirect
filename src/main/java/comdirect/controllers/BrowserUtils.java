@@ -102,14 +102,14 @@ public class BrowserUtils {
     }
 
     static void requestCredentialsFromUser(ComdirectConfig config1) {
-        if (config1.getUser() == null || config1.getUser().isEmpty()) {
+        if (config1.getLogin().getUser() == null || config1.getLogin().getUser().isEmpty()) {
             TextInputDialog userDialog = new TextInputDialog();
             userDialog.setTitle("Zugangsnummer erforderlich");
             userDialog.setHeaderText("Bitte geben Sie Ihre Zugangsnummer ein:");
             userDialog.setContentText("Zugangsnummer:");
             Optional<String> result = userDialog.showAndWait();
             result.ifPresentOrElse(
-                    userNumber -> config1.setUser(userNumber),
+                    userNumber -> config1.getLogin().setUser(userNumber),
                     () -> {
                         showError("Fehler", "Keine Zugangsnummer eingegeben", "Die Anwendung wird beendet.");
                         System.exit(1);
@@ -117,14 +117,14 @@ public class BrowserUtils {
             );
         }
 
-        if (config1.getPin() == null || config1.getPin().isEmpty()) {
+        if (config1.getLogin().getPin() == null || config1.getLogin().getPin().isEmpty()) {
             TextInputDialog pinDialog = new TextInputDialog();
             pinDialog.setTitle("PIN erforderlich");
             pinDialog.setHeaderText("Bitte geben Sie Ihre PIN ein:");
             pinDialog.setContentText("PIN:");
             Optional<String> result = pinDialog.showAndWait();
             result.ifPresentOrElse(
-                    pin -> config1.setPin(pin),
+                    pin -> config1.getLogin().setPin(pin), // ToDo: Never save PIN/Password readably!
                     () -> {
                         showError("Fehler", "Keine PIN eingegeben", "Die Anwendung wird beendet.");
                         System.exit(1);

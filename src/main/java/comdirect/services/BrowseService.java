@@ -3,8 +3,8 @@ package comdirect.services;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.microsoft.playwright.*;
+import comdirect.config.ComdirectConfig;
 import comdirect.controllers.BrowserUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -12,8 +12,7 @@ import java.util.Map;
 @Service
 public class BrowseService {
 
-    @Value("${comdirect.auto-close-cookie-banner}")
-    boolean autoCloseCookieBanner;
+    private final ComdirectConfig config;
 
     // Login-URL aus application.yml laden
 //    @Value("${comdirect.login.url0}") //ToDo: Fix this
@@ -32,27 +31,31 @@ public class BrowseService {
     public BrowserContext context;
     public Page page;
 
+
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Constructors
+    /// Construction
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public BrowseService() {
+    public BrowseService(ComdirectConfig config) {
+        this.config = config;
+
         initPlaywright();
     }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Playwright Interactions
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void initPlaywright() {
         // Playwright initialisieren
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(config.getBrowser().isHeadless()));
 
         // Browser-Kontext und Seite erstellen
         context = browser.newContext();
         page = context.newPage();
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Playwright Interactions
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public String getLoginPage() {
         // Login-Seite laden
@@ -62,7 +65,7 @@ public class BrowseService {
         page.waitForLoadState();
 
         // Cookie-Banner schließen (falls sichtbar)
-        BrowserUtils.closeCookieBanner(page, autoCloseCookieBanner);
+        BrowserUtils.closeCookieBanner(page, config.getBrowser().isAutoCloseCookieBanner());
 
         // HTML der Seite extrahieren und in der WebView anzeigen
         return page.content();
@@ -73,7 +76,7 @@ public class BrowseService {
         page.waitForLoadState();
 
         // Cookie-Banner schließen (falls sichtbar)
-        BrowserUtils.closeCookieBanner(page, autoCloseCookieBanner);
+        BrowserUtils.closeCookieBanner(page, config.getBrowser().isAutoCloseCookieBanner());
 
         // Benutzername und Passwort eingeben
         page.fill("input[name='loginForm:userName']", username);
@@ -84,9 +87,6 @@ public class BrowseService {
 
         // Warte, bis die Seite vollständig geladen ist
         page.waitForLoadState();
-
-        // Cookie-Banner schließen (falls sichtbar)
-        BrowserUtils.closeCookieBanner(page, autoCloseCookieBanner);
 
         // HTML der Seite extrahieren und in der WebView anzeigen
         return page.content();
