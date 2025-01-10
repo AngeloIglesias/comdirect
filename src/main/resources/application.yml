@@ -1,4 +1,5 @@
 comdirect:
+  autoCloseCookieBanner: true
   login:
     url0: "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1"
     url1: "https://kunde.comdirect.de/itx/tfe/starten?execution=e1s1"

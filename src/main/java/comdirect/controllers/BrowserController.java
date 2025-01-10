@@ -21,7 +21,7 @@ import netscape.javascript.JSObject;
 
 import javafx.concurrent.Worker.State;
 
-class Browser extends Region {
+class BrowserController extends Region {
 
     private final HBox toolBar;
     final private static String[] imageFiles = new String[]{
@@ -43,7 +43,7 @@ class Browser extends Region {
             "http://blogs.oracle.com/",
             "http://docs.oracle.com/javase/index.html",
             "http://www.oracle.com/partners/index.html",
-//            WebViewSample.class.getResource("help.html").toExternalForm()
+            MainController.class.getResource("help.html").toExternalForm()
     };
     final ImageView selectedImage = new ImageView();
     final Hyperlink[] hpls = new Hyperlink[captions.length];
@@ -54,7 +54,7 @@ class Browser extends Region {
     private boolean needDocumentationButton = false;
 
 
-    public Browser(final Stage stage) {
+    public BrowserController(final Stage stage) {
         //apply the styles
         getStyleClass().add("browser");
 
