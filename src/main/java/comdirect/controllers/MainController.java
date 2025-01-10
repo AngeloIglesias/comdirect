@@ -80,11 +80,14 @@ public class MainController {
                     // Seite wurde vollständig geladen
                     System.out.println("Seite vollständig geladen, registriere Bridge und JavaScript.");
 
-
+                    WebViewBridge bridge = new WebViewBridge(this);
+                    JSObject window = (JSObject) webView.getEngine().executeScript("window");
+                    System.out.println("Bridge erfolgreich registriert: " + (window != null));
+                    window.setMember("bridge", bridge);
                 }
             });
 
-            /// ///
+            /// /// ToDo: Remove this block( fails to load, if removed) ///
             // Bridge zwischen JavaFX-WebView und Playwright erstellen
             WebViewBridge bridge = new WebViewBridge(this);
             JSObject window = (JSObject) webView.getEngine().executeScript("window");
@@ -92,15 +95,6 @@ public class MainController {
             window.setMember("bridge", bridge);
             /// //
 
-            /// ///
-            // Zusätzlicher Schutz: Blockiere externe Navigation
-//            page.onRequest(request -> {
-//                if (!request.url().startsWith("https://kunde.comdirect.de")) {
-//                    System.out.println("Blockierte Anfrage: " + request.url());
-//                    request.abort();
-//                }
-//            });
-            ///
         } catch (Exception e) {
             e.printStackTrace();
             showError("Fehler", "Fehler beim Initialisieren", e.getMessage());
