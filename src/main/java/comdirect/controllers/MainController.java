@@ -107,7 +107,7 @@ public class MainController {
     public void handleLinkClick(String href) {
         System.out.println("Link geklickt: " + href);
         try {
-            displayHtmlInWebView(browseService.loadPage(href));
+            displayHtmlInWebView(browseService.loadPage(resolveUrl(href)));
         } catch (Exception e) {
             e.printStackTrace();
             BrowserUtils.showError("Fehler", "Link-Navigation fehlgeschlagen", e.getMessage());
@@ -136,6 +136,10 @@ public class MainController {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Helper methods
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     private String extractQueryParam(String url, String param) {
         try {
             String query = url.split("\\?")[1];
@@ -150,5 +154,21 @@ public class MainController {
             System.err.println("Fehler beim Extrahieren des Parameters: " + e.getMessage());
         }
         return null;
+    }
+
+    private String resolveUrl(String href) {
+        try {
+            // Überprüfe, ob der Link bereits eine absolute URL ist
+            if (href.startsWith("http://") || href.startsWith("https://")) {
+                return href;
+            }
+
+            // Hole die Basis-URL der aktuellen Seite
+            String baseUrl = browseService.page.url(); // Playwright kann die aktuelle URL abrufen
+            return new java.net.URL(new java.net.URL(baseUrl), href).toString();
+        } catch (Exception e) {
+            System.err.println("Fehler beim Erstellen der absoluten URL: " + e.getMessage());
+            return href; // Fallback auf den Original-Link
+        }
     }
 }
