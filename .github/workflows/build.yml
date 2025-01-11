@@ -22,10 +22,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Spring Boot JAR
-        run: ./gradlew bootJar
+      - name: Build project
+        run: ./gradlew build
 
-      - name: Debug build output
+      # Debug-Schritt: Zeige die erzeugten Dateien an
+      - name: List build artifacts
         run: ls -l build/libs
 
       - name: Determine version
@@ -33,7 +34,7 @@ jobs:
         run: |
           version=$(grep 'version=' gradle.properties | cut -d'=' -f2)
           echo "current_version=$version" >> $GITHUB_ENV
-          new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}' | tr -d ' ')
+          new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}')
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Update version in gradle.properties
@@ -48,15 +49,14 @@ jobs:
 
       - name: Create Git tag
         run: |
-          git tag "v${{ env.new_version }}"
-          git push origin "v${{ env.new_version }}"
+          git tag "v$new_version"
+          git push origin "v$new_version"
 
       - name: Create GitHub Release
-        id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: "v${{ env.new_version }}"
-          release_name: "Release v${{ env.new_version }}"
+          tag_name: "v$new_version"
+          release_name: "Release v$new_version"
           draft: false
           prerelease: false
         env:
@@ -65,7 +65,7 @@ jobs:
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/comdirect-${{ env.new_version }}.jar
-          asset_name: comdirect-${{ env.new_version }}.jar
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: build/libs/comdirect-$new_version.jar
+          asset_name: comdirect-$new_version.jar
           asset_content_type: application/java-archive
