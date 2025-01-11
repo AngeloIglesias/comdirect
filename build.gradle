@@ -13,7 +13,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.named('jar') {
+tasks.named('bootJar') {
     archiveBaseName.set('your-application')
 }
 
