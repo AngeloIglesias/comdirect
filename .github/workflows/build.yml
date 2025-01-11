@@ -18,6 +18,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin' # oder zulu/adopt/etc.
           java-version: '17'
 
       # 3. Build the project
