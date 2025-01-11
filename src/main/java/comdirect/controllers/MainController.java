@@ -3,7 +3,10 @@ package comdirect.controllers;
 import comdirect.config.ComdirectConfig;
 import comdirect.services.BrowseService;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +31,23 @@ public class MainController {
     @FXML
     private WebView webView;
 
+    @FXML
+    private TextField addressBar;
+
+    @FXML
+    private ComboBox<String> browserSelector;
+
     @Autowired
     private BrowseService browseService;
     private boolean isLoading;
 
     @FXML
     public void initialize() {
+        // Browser-Dropdown initialisieren
+        browserSelector.getItems().addAll("chromium", "firefox", "webkit", "edge");
+        browserSelector.setValue(config.getBrowser().getDefaultBrowser()); // Standardwert aus application.yml
+
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// WebView-Initialisierung
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +70,7 @@ public class MainController {
             }
         });
 
-        displayHtmlInWebView(browseService.getLoginPage());
+        displayHtmlInWebView(browseService.navigateToAndCloseCookieBanner(config.getLogin().getUrl3()));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +83,7 @@ public class MainController {
         Platform.runLater(() -> {
             try {
                 webView.getEngine().loadContent(appendScripts(htmlContent));
+                addressBar.setText(browseService.page.url());
             } finally {
                 // isLoading zurücksetzen, auch wenn ein Fehler auftritt
                 isLoading = false;
@@ -87,6 +102,25 @@ public class MainController {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Event handlers for JavaFX controls
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @FXML
+    protected void onBackClick() {
+        displayHtmlInWebView(browseService.navigateBack());
+    }
+
+    @FXML
+    protected void onHomeClick() {
+        displayHtmlInWebView(browseService.navigateTo(config.getUi().getHomeUrl()));
+    }
+
+    @FXML
+    protected void onAddressEntered() {
+        String url = addressBar.getText();
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://" + url;
+        }
+        displayHtmlInWebView(browseService.navigateTo(url));
+    }
 
     @FXML
     protected void onStartApplicationClick() {
@@ -120,7 +154,7 @@ public class MainController {
                 return;
             }
 
-            displayHtmlInWebView(browseService.loadPage(absoluteUrl));
+            displayHtmlInWebView(browseService.navigateTo(absoluteUrl));
         } catch (Exception e) {
             e.printStackTrace();
             BrowserUtils.showError("Fehler", "Link-Navigation fehlgeschlagen", e.getMessage());
@@ -202,5 +236,14 @@ public class MainController {
             System.err.println("Ungültige URL: " + url);
             return false;
         }
+    }
+
+    public void onForwardClick(ActionEvent actionEvent) {
+        displayHtmlInWebView(browseService.navigateForward());
+    }
+
+    public void onBrowserSelectionChanged(ActionEvent actionEvent) {
+        String selectedBrowser = browserSelector.getValue();
+        browseService.changeBrowser(selectedBrowser);
     }
 }

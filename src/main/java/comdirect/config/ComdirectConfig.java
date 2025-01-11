@@ -15,12 +15,15 @@ public class ComdirectConfig {
 
     @Data
     public static class BrowserConfig {
+        private String defaultBrowser;
+        private String edgePath;
         private boolean autoCloseCookieBanner;
         private boolean headless;
     }
 
     @Data
     public static class UiConfig {
+        private String homeUrl;
         private boolean enableJavascriptDebug;
         private boolean enableJavascriptConsole;
     }
@@ -30,6 +33,7 @@ public class ComdirectConfig {
         private String url0;
         private String url1;
         private String url2;
+        private String url3;
         private String postUrl;
         private String user;
         private String pin;

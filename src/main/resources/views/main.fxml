@@ -6,15 +6,22 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="comdirect.controllers.MainController">
+
     <top>
-        <Label text="Comdirect JNLP Automatisierung" BorderPane.alignment="CENTER"/>
+        <ToolBar>
+            <HBox spacing="5.0" HBox.hgrow="ALWAYS">
+                <Button text="Zurück" onAction="#onBackClick" />
+                <Button text="Vor" onAction="#onForwardClick" />
+                <Button text="Home" onAction="#onHomeClick" />
+                <TextField fx:id="addressBar" promptText="Adresse eingeben und Enter drücken" onAction="#onAddressEntered" HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="browserSelector" onAction="#onBrowserSelectionChanged"/>
+                <Button text="Start Application" onAction="#onStartApplicationClick" />
+            </HBox>
+        </ToolBar>
     </top>
+
     <center>
         <WebView fx:id="webView" />
     </center>
-    <bottom>
-        <Button text="Start Application"
-                onAction="#onStartApplicationClick"
-                BorderPane.alignment="CENTER"/>
-    </bottom>
+
 </BorderPane>
