@@ -6,7 +6,16 @@ plugins {
 }
 
 group = 'consorsbank'
-version = '1.0'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.named('jar') {
+    archiveBaseName.set('your-application')
+}
 
 repositories {
     mavenCentral()
