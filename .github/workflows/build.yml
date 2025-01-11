@@ -75,9 +75,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Asset
+        if: steps.create_release.outputs.upload_url != ''
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # Korrekte Übergabe der URL
-          asset_path: build/libs/comdirect-1.0.0.jar # Passe dies an, falls nötig
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/libs/comdirect-1.0.0.jar
           asset_name: comdirect-$new_version.jar
           asset_content_type: application/java-archive
