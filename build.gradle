@@ -14,8 +14,10 @@ java {
 }
 
 tasks.named('bootJar') {
-    archiveBaseName.set('your-application')
+    archiveBaseName.set('comdirect') // Name des Repositories
+    archiveVersion.set(version)     // Automatische Versionsnummer aus "version" in gradle.properties
 }
+
 
 repositories {
     mavenCentral()
