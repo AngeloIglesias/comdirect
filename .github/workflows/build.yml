@@ -30,7 +30,8 @@ jobs:
         run: |
           version=$(grep 'version=' gradle.properties | cut -d'=' -f2)
           echo "current_version=$version" >> $GITHUB_ENV
-          new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}')
+          # Remove spaces from version to avoid invalid tags
+          new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}' | tr -d ' ')
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Check Git Remote
@@ -48,14 +49,14 @@ jobs:
 
       - name: Create Git tag
         run: |
-          git tag "v$new_version"
-          git push origin "v$new_version"
+          git tag "v${{ env.new_version }}"
+          git push origin "v${{ env.new_version }}"
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: "v$new_version"
-          release_name: "Release v$new_version"
+          tag_name: "v${{ env.new_version }}"
+          release_name: "Release v${{ env.new_version }}"
           draft: false
           prerelease: false
         env:
@@ -66,5 +67,5 @@ jobs:
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: build/libs/your-application.jar
-          asset_name: your-application-$new_version.jar
+          asset_name: your-application-${{ env.new_version }}.jar
           asset_content_type: application/java-archive
