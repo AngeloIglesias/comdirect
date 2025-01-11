@@ -47,13 +47,24 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
           git push origin release
 
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          if git rev-parse "v$new_version" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_ENV
+          else
+            echo "exists=false" >> $GITHUB_ENV
+          fi
+
       - name: Create Git tag
+        if: env.exists == 'false'
         run: |
           git tag "v$new_version"
           git push origin "v$new_version"
 
       - name: Create GitHub Release
-        id: create_release # Fügt eine ID hinzu, um Outputs später zu nutzen
+        if: env.exists == 'false'
+        id: create_release
         uses: actions/create-release@v1
         with:
           tag_name: "v$new_version"
