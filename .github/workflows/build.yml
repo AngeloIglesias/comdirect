@@ -33,6 +33,9 @@ jobs:
           new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}')
           echo "new_version=$new_version" >> $GITHUB_ENV
 
+      - name: Check Git Remote
+        run: git remote -v
+
       - name: Update version in gradle.properties
         run: |
           sed -i "s/version=$current_version/version=$new_version/" gradle.properties
