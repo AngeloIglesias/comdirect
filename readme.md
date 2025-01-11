@@ -18,6 +18,7 @@ Die wichtigsten Abhängigkeiten sind:
 
 - **Spring Boot 3.1.4**: Für Dependency Injection und erweiterbare Konfiguration
 - **JavaFX**: Für die Benutzeroberfläche und WebView-Komponente
+- **Playwright**: Für die Interaktion mit der Webseite
 - **Jsoup**: Für das Parsen der heruntergeladenen JNLP-Dateien
 
 Alle Abhängigkeiten sind in der Datei `build.gradle` definiert.
@@ -41,8 +42,13 @@ Alle Abhängigkeiten sind in der Datei `build.gradle` definiert.
    ./gradlew run
    ```
 
-4. **Testen der Anwendung**:
-   Nach dem Start der Anwendung sollte ein Login-Bildschirm der Comdirect-WebView angezeigt werden. Zusätzliche Debugging-Informationen werden in der Konsole angezeigt.
+4. **Anwendung als ausführbare JAR starten**:
+   Wenn du die Java-Version nicht global ändern möchtest, kannst du die Anwendung mit Java 21 direkt starten:
+   ```bash
+   /path/to/java-21/bin/java -jar build/libs/comdirect-1.0.0.jar
+   ```
+
+   Ersetze `/path/to/java-21/` mit dem Verzeichnis, in dem sich dein Java 21 befindet.
 
 ## Projektstruktur
 
@@ -51,19 +57,19 @@ comdirect-jnlp
 ├── src
 │   ├── main
 │   │   ├── java
-│   │   │   └── com
-│   │   │       └── example
-│   │   │           └── comdirect
-│   │   │               ├── Main.java            // Hauptklasse zur Integration von JavaFX und Spring Boot
-│   │   │               ├── SpringFXMLLoader.java // Loader für die Integration von FXML und Spring
-│   │   │               └── controller
-│   │   │                   └── MainController.java // Logik des Hauptfensters
+│   │   │   └── comdirect
+│   │   │       ├── Main.java             // Hauptklasse zur Integration von JavaFX und Spring Boot
+│   │   │       ├── BrowserUtils.java     // Hilfsfunktionen für die WebView
+│   │   │       ├── controllers
+│   │   │       │   └── MainController.java // Logik des Hauptfensters
+│   │   │       └── services
+│   │   │           └── BrowseService.java // Service zur Webseiten-Navigation
 │   │   └── resources
 │   │       ├── views
-│   │       │   └── main.fxml         // FXML-Datei für die Benutzeroberfläche
-│   │       └── application.properties // Spring-Konfiguration
-├── build.gradle                      // Gradle-Builddatei
-└── README.md                         // Dokumentation
+│   │       │   └── main.fxml              // FXML-Datei für die Benutzeroberfläche
+│   │       └── application.properties     // Spring-Konfiguration
+├── build.gradle                           // Gradle-Builddatei
+└── README.md                              // Dokumentation
 ```
 
 ## Workflow der Anwendung
@@ -104,9 +110,14 @@ graph TD
 
 ---
 
+## Lizenz
+
+Dieses Projekt steht unter der MIT-Lizenz. Weitere Informationen findest du in der Datei `LICENSE`.
+
 ## Autor
 Entwickelt von Angelo Iglesias
 
 ## Links
 - [Making Upcalls from JavaScript to JavaFX](https://docs.oracle.com/javase/8/javafx/embedded-browser-tutorial/js-javafx.htm)
+```
 
