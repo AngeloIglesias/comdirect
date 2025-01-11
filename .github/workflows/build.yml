@@ -37,7 +37,17 @@ jobs:
           new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}')
           echo "new_version=$new_version" >> $GITHUB_ENV
 
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          if git ls-remote --tags origin | grep -q "refs/tags/v$new_version$"; then
+            echo "exists=true" >> $GITHUB_ENV
+          else
+            echo "exists=false" >> $GITHUB_ENV
+          fi
+
       - name: Update version in gradle.properties
+        if: env.exists == 'false'
         run: |
           sed -i "s/version=$current_version/version=$new_version/" gradle.properties
           git config user.name "github-actions[bot]"
@@ -46,15 +56,6 @@ jobs:
           git commit -m "Bump version to $new_version"
           git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
           git push origin release
-
-      - name: Check if tag already exists
-        id: check_tag
-        run: |
-          if git rev-parse "v$new_version" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_ENV
-          else
-            echo "exists=false" >> $GITHUB_ENV
-          fi
 
       - name: Create Git tag
         if: env.exists == 'false'
