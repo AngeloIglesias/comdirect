@@ -14,10 +14,15 @@ java {
 }
 
 tasks.named('bootJar') {
-    archiveBaseName.set('comdirect') // Name des Repositories
-    archiveVersion.set(version)     // Automatische Versionsnummer aus "version" in gradle.properties
-}
+    archiveBaseName.set('comdirect') // Setzt den Basisnamen des Archivs
+    archiveVersion.set(version)     // Setzt die Versionsnummer basierend auf gradle.properties
 
+    manifest {
+        attributes( // instead of the default jar launcher, use the PropertiesLauncher
+                'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher' // Verwende PropertiesLauncher
+        )
+    }
+}
 
 repositories {
     mavenCentral()

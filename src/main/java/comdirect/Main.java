@@ -7,9 +7,21 @@ import javafx.stage.Stage;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main extends Application {
 
     private ConfigurableApplicationContext springContext;
+
+    public static void main(String[] args) {
+        // Dynamischen Klassenpfad für plattformspezifische JavaFX-JARs setzen
+        configurePlatformSpecificClasspath();
+
+        // Starte die JavaFX-Anwendung
+        launch(args);
+    }
 
     @Override
     public void init() throws Exception {
@@ -52,7 +64,49 @@ public class Main extends Application {
         System.exit(0);
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    private static void configurePlatformSpecificClasspath() {
+        String os = System.getProperty("os.name").toLowerCase();
+        String osSuffix;
+
+        // Betriebssystem erkennen
+        if (os.contains("win")) {
+            osSuffix = "-win";
+        } else if (os.contains("nux") || os.contains("nix")) {
+            osSuffix = "-linux";
+        } else if (os.contains("mac")) {
+            osSuffix = "-mac";
+        } else {
+            throw new UnsupportedOperationException("Unsupported OS: " + os);
+        }
+
+        // Prüfe, ob wir aus einem gepackten JAR starten (BOOT-INF/lib vorhanden)
+        String libPath = "BOOT-INF/lib";
+        File libDir = new File(libPath);
+
+        List<String> loaderPaths = new ArrayList<>();
+        if (libDir.exists() && libDir.isDirectory()) {
+            System.out.println("Running from packaged JAR.");
+            // Plattformspezifische JARs aus BOOT-INF/lib laden
+            for (File file : libDir.listFiles()) {
+                String fileName = file.getName();
+                if (fileName.endsWith(osSuffix + ".jar") ||
+                        (!fileName.contains("-win") && !fileName.contains("-linux") && !fileName.contains("-mac"))) {
+                    loaderPaths.add(file.getAbsolutePath());
+                }
+            }
+        } else {
+            System.out.println("Running from IDE or exploded JAR.");
+            // IDE-Modus: Abhängigkeiten direkt aus dem Classpath laden
+            // In diesem Fall ignorieren wir `loader.path` und setzen nichts weiter
+            // Optional: Debug-Ausgabe
+            System.out.println("Classpath-based execution, no loader.path configured.");
+        }
+
+        // Wenn plattformspezifische Loader-Pfade gefunden wurden, setzen
+        if (!loaderPaths.isEmpty()) {
+            System.setProperty("loader.path", String.join(",", loaderPaths));
+        }
     }
+
+
 }
