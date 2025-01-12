@@ -9,19 +9,20 @@ jobs:
   build-and-package:
     strategy:
       matrix:
+        os: [ubuntu-latest, ubuntu-arm, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
             jpackage_type: deb
-            javafx_url: "https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_linux-x64_bin-sdk.zip"
+            javafx_url: https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_linux-x64_bin-sdk.zip
           - os: ubuntu-arm
             jpackage_type: deb
-            javafx_url: "https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_linux-aarch64_bin-sdk.zip"
+            javafx_url: https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_linux-aarch64_bin-sdk.zip
           - os: windows-latest
             jpackage_type: exe
-            javafx_url: "https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_windows-x64_bin-sdk.zip"
+            javafx_url: https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_windows-x64_bin-sdk.zip
           - os: macos-latest
             jpackage_type: dmg
-            javafx_url: "https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_osx-x64_bin-sdk.zip"
+            javafx_url: https://download2.gluonhq.com/openjfx/23.0.1/openjfx-23.0.1_osx-x64_bin-sdk.zip
 
     runs-on: ${{ matrix.os }}
 
@@ -36,6 +37,7 @@ jobs:
           java-version: '21'
 
       - name: Download and unpack JavaFX SDK
+        shell: bash
         run: |
           echo "Downloading JavaFX SDK from ${{ matrix.javafx_url }}"
           curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
@@ -47,18 +49,15 @@ jobs:
             unzip javafx-sdk.zip -d javafx-sdk
           fi
 
-      - name: Debug JavaFX SDK files
-        run: ls -R javafx-sdk
-
       - name: Copy JavaFX native libraries
         run: |
           mkdir -p build/libs/native
           if [[ $RUNNER_OS == "Windows" ]]; then
-            cp javafx-sdk/javafx-sdk-23.0.1/bin/*.dll build/libs/native/ || echo "No .dll files found"
+            cp javafx-sdk/bin/*.dll build/libs/native/
           elif [[ $RUNNER_OS == "Linux" ]]; then
-            cp javafx-sdk/javafx-sdk-23.0.1/bin/*.so build/libs/native/ || echo "No .so files found"
+            cp javafx-sdk/bin/*.so build/libs/native/
           elif [[ $RUNNER_OS == "macOS" ]]; then
-            cp javafx-sdk/javafx-sdk-23.0.1/bin/*.dylib build/libs/native/ || echo "No .dylib files found"
+            cp javafx-sdk/bin/*.dylib build/libs/native/
           fi
 
       - name: Make gradlew executable
@@ -75,6 +74,7 @@ jobs:
             --main-class comdirect.Main \
             --name ComdirectApp \
             --type ${{ matrix.jpackage_type }} \
+            --runtime-image build/libs/native \
             --add-modules javafx.controls,javafx.fxml,javafx.web \
             --app-version ${{ github.run_number }} \
             --dest build/dist
