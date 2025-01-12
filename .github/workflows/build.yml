@@ -38,10 +38,12 @@ jobs:
 
       - name: Download JavaFX SDK
         run: |
-          curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
-          if [[ $RUNNER_OS == "Windows" ]]; then
+          echo "Downloading JavaFX SDK from ${{ matrix.javafx_url }}"
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
             powershell -Command "Expand-Archive -Path javafx-sdk.zip -DestinationPath javafx-sdk"
           else
+            curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
             unzip javafx-sdk.zip -d javafx-sdk
           fi
 
