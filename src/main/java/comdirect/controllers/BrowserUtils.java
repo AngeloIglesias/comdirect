@@ -1,25 +1,23 @@
-package util;
+package comdirect.controllers;
 
 import com.microsoft.playwright.Page;
 import comdirect.config.ComdirectConfig;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
  * Todo: Sollten nach DDD in dedizierte Service-Klassen, z. B. JavaScriptService oder WebViewService verschoben werden.
  */
 public class BrowserUtils {
-    public static String addDebugCode()
+    static String addDebugCode()
     {
         return "";
     }
 
     // Gibt console.log-Ausgaben in der WebView als JavaScript-Alerts aus
-    public static String addConsoleLogCode() {
+    static String addConsoleLogCode() {
         return "console.log = function(...messages) {" +
                 "    let logDiv = document.getElementById('logDiv');" +
                 "    if (!logDiv) {" +
@@ -48,15 +46,7 @@ public class BrowserUtils {
                 "};";
     }
 
-    public static String addBridgeCode() {
-        return addLinkHandler() + addSyncHandler();
-    }
-
-    /**
-     * Fügt Event-Listener für Link-Klicks und Formularabsendungen hinzu
-     * @return
-     */
-    private static String addLinkHandler() {
+    static String addBridgeCode() {
         return "window.bridge = {" +
                 "    onLinkClicked: function(href) {" +
                 "        console.log('[Bridge] Link geklickt:', href);" +
@@ -91,21 +81,8 @@ public class BrowserUtils {
                 "}));";
     }
 
-    /**
-     * Fügt Event-Listener für die Synchronisation von WebView mit Playwright hinzu
-     * @return
-     */
-    private static String addSyncHandler() {
-        return "document.addEventListener('input', function(event) {" +
-                "    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {" +
-                "        window.bridge.onTextInputChange(event.target.name || event.target.id || '', event.target.value);" +
-                "    }" +
-                "});";
-    }
 
-
-
-    public static boolean requestCredentialsFromUser(ComdirectConfig config1) {
+    static boolean requestCredentialsFromUser(ComdirectConfig config1) {
         if (config1.getLogin().getUser() == null || config1.getLogin().getUser().isEmpty()) {
             TextInputDialog userDialog = new TextInputDialog();
             userDialog.setTitle("Zugangsnummer erforderlich");
@@ -134,7 +111,7 @@ public class BrowserUtils {
         return true;
     }
 
-    public static void showError(String title, String header, String content) {
+    static void showError(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(header);
@@ -149,66 +126,30 @@ public class BrowserUtils {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Helper methods
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class WebViewBridge {
+        private MainController controller;
 
-    public static String extractQueryParam(String url, String param) {
-        try {
-            String query = url.split("\\?")[1];
-            String[] pairs = query.split("&");
-            for (String pair : pairs) {
-                String[] keyValue = pair.split("=");
-                if (keyValue[0].equals(param)) {
-                    return URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Fehler beim Extrahieren des Parameters: " + e.getMessage());
+        public WebViewBridge(MainController controller) {
+            this.controller = controller;
         }
-        return null;
-    }
 
-    public static String resolveUrl(String href, Page page) {
-        try {
-            if (href.startsWith("//")) {
-                // Protokoll-relative URL ergänzen
-                return "https:" + href;
-            }
-
-            if (href.startsWith("#")) {
-                // Interner Anker, prüfe, ob der Anker bereits in der aktuellen URL vorhanden ist
-                String currentUrl = page.url();
-                if (currentUrl.contains(href)) {
-                    // Anker ist bereits vorhanden, URL unverändert zurückgeben
-                    return currentUrl;
-                }
-
-                // Anker hinzufügen, wenn er noch nicht vorhanden ist
-                return currentUrl + href;
-            }
-
-            if (href.startsWith("http://") || href.startsWith("https://")) {
-                // Absolute URL
-                return href;
-            }
-
-            // Relative URL in absolute URL umwandeln
-            String baseUrl = page.url();
-            return new java.net.URL(new java.net.URL(baseUrl), href).toString();
-        } catch (Exception e) {
-            System.err.println("Fehler beim Erstellen der absoluten URL: " + e.getMessage());
-            return href; // Fallback auf den Original-Link
+        public void onLinkClicked(String href) {
+            System.out.println("Benutzer hat Link geklickt: " + href);
+            controller.handleLinkClick(href);
         }
-    }
 
-    public static boolean isValidUrl(String url) {
-        try {
-            new java.net.URI(url);
-            return true;
-        } catch (Exception e) {
-            System.err.println("Ungültige URL: " + url);
-            return false;
+        public void onFormSubmitted(String formData) {
+            System.out.println("Formular wurde abgeschickt: " + formData);
+            controller.handleFormSubmission(formData);
         }
+
+        public void testConnection() {
+            System.out.println("Bridge connected!");
+        }
+
+        public void logMessage(String message) {
+            System.out.println("WebView Log: " + message);
+        }
+
     }
 }

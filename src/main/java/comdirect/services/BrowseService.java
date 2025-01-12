@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.microsoft.playwright.*;
 import comdirect.config.ComdirectConfig;
-import util.BrowserUtils;
+import comdirect.controllers.BrowserUtils;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -67,14 +68,6 @@ public class BrowseService {
         context = browser.newContext();
         page = context.newPage();
         applyDownloadSettings();
-
-        page.onLoad((page) -> System.out.println("Seite geladen: " + page.url()));
-        page.onFrameNavigated((frame) -> System.out.println("Frame navigiert: " + frame.url()));
-//        page.onRequest((request) -> System.out.println("Anfrage: " + request.url()));
-//        page.onResponse((response) -> System.out.println("Antwort: " + response.url()));
-//        page.onRequestFailed((request) -> System.out.println("Anfrage fehlgeschlagen: " + request.url()));
-//        page.onRequestFinished((request) -> System.out.println("Anfrage beendet: " + request.url()));
-
     }
 
     private void applyDownloadSettings() {
@@ -115,6 +108,7 @@ public class BrowseService {
         if (browser != null) browser.close();
         if (playwright != null) playwright.close();
     }
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Playwright Interactions
@@ -265,10 +259,4 @@ public class BrowseService {
         page.waitForLoadState();
         return page.content();
     }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Event Handling
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 }
