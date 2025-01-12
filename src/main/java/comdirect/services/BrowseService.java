@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.microsoft.playwright.*;
 import comdirect.config.ComdirectConfig;
 import comdirect.controllers.BrowserUtils;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -23,6 +24,8 @@ public class BrowseService {
     private final String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36";
 
     private List<String> history = new ArrayList<>(); // Manuelle History
+    @Getter
+    private List<Download> downloads = new ArrayList<>();
 
     private int currentIndex = -1; // Index der aktuellen Seite
 
@@ -43,12 +46,11 @@ public class BrowseService {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Construction & Teardown
+    /// Construction & TearDown
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public BrowseService(ComdirectConfig config) {
         this.config = config;
-
         initPlaywright();
     }
 
@@ -73,6 +75,7 @@ public class BrowseService {
             page.onDownload(download -> {
                 try {
                     downloadsActive.addAndGet(1);
+                    downloads.add(download);
 
                     System.out.println("Download gestartet: " + download.url());
 

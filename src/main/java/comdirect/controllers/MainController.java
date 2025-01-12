@@ -1,6 +1,7 @@
 package comdirect.controllers;
 
 import comdirect.config.ComdirectConfig;
+import comdirect.services.BookmarkManager;
 import comdirect.services.BrowseService;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -38,8 +39,15 @@ public class MainController {
     @FXML
     private ComboBox<String> browserSelector;
 
+    @FXML
+    private ComboBox<String> bookmarkSelector;
+
     @Autowired
     private BrowseService browseService;
+
+    @Autowired
+    private BookmarkManager bookmarkManager;
+
     private boolean isLoading;
 
     @FXML
@@ -48,6 +56,8 @@ public class MainController {
         browserSelector.getItems().addAll("chromium", "firefox", "webkit", "edge");
         browserSelector.setValue(config.getBrowser().getDefaultBrowser()); // Standardwert aus application.yml
 
+        // Bookmarks in die ComboBox laden
+        bookmarkSelector.getItems().addAll(bookmarkManager.getBookmarkNames());
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// WebView-Initialisierung
@@ -225,13 +235,22 @@ public class MainController {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @FXML
-    protected void onBackClick() {
-        displayHtmlInWebView(browseService.navigateBack());
+    protected void onHomeClick() {
+        displayHtmlInWebView(browseService.navigateTo(config.getUi().getUrlHome()));
+        bookmarkSelector.setValue(bookmarkManager.getPageName());
     }
 
     @FXML
-    protected void onHomeClick() {
-        displayHtmlInWebView(browseService.navigateTo(config.getUi().getUrlHome()));
+    protected void onBackClick() {
+        displayHtmlInWebView(browseService.navigateBack());
+        bookmarkSelector.setValue(bookmarkManager.getPageName());
+    }
+
+    @FXML
+    public void onForwardClick(ActionEvent actionEvent) {
+        bookmarkSelector.setValue(null);
+        displayHtmlInWebView(browseService.navigateForward());
+        bookmarkSelector.setValue(bookmarkManager.getPageName());
     }
 
     @FXML
@@ -241,17 +260,13 @@ public class MainController {
             url = "https://" + url;
         }
         displayHtmlInWebView(browseService.navigateTo(url));
+        bookmarkSelector.setValue(bookmarkManager.getPageName());
     }
 
     @FXML
     protected void onStartApplicationClick() {
         // ToDo: Implement the auto login, download and webstart functionality, here
         BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", "Not implemented yet.");
-    }
-
-    @FXML
-    public void onForwardClick(ActionEvent actionEvent) {
-        displayHtmlInWebView(browseService.navigateForward());
     }
 
     @FXML
@@ -267,6 +282,7 @@ public class MainController {
 
     @FXML
     public void onLoginClick(ActionEvent actionEvent) {
+        bookmarkSelector.setValue(null);
         try {
             if(config.getLogin().isUseDifferentLoginUrl())
             {
@@ -288,6 +304,22 @@ public class MainController {
         } catch (Exception e) {
             e.printStackTrace();
             BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
+        }
+    }
+
+    @FXML
+    public void onBookmarkSelectionChanged(ActionEvent actionEvent) {
+        // Name des ausgewählten Bookmarks abrufen
+        String selectedBookmarkName = bookmarkSelector.getValue();
+
+        // URL zum Bookmark abrufen
+        String url = bookmarkManager.getBookmarkUrlByName(selectedBookmarkName);
+
+        if (url != null) {
+            // URL im Browser öffnen
+            displayHtmlInWebView(browseService.navigateTo(url));
+        } else {
+            System.err.println("Fehler: Keine URL für das ausgewählte Bookmark gefunden.");
         }
     }
 }
