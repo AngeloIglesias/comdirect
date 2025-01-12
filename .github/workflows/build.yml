@@ -60,7 +60,7 @@ jobs:
         run: |
           jpackage \
             --input build/libs \
-            --main-jar comdirect-1.0.0.jar \
+            --main-jar comdirect-1.0.0-all.jar \
             --main-class comdirect.Main \
             --name ComdirectApp \
             --type ${{ matrix.jpackage_type }} \
