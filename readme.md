@@ -2,7 +2,7 @@
 
 ## Projektbeschreibung
 
-Dieses Projekt ist eine JavaFX-Anwendung, die den Login- und Freigabeprozess der Comdirect-Website automatisiert. Es kombiniert **Spring Boot** und **JavaFX**, um eine moderne Benutzeroberfläche und eine erweiterbare Backend-Integration zu bieten. Der Benutzer kann sich einloggen, die TAN-Freigabe durchführen und eine JNLP-Datei verarbeiten lassen.
+Dieses Projekt ist eine JavaFX-Anwendung (Multi-Platform-Build), die den Login- und Freigabeprozess der Comdirect-Website automatisiert. Es kombiniert **Spring Boot** und **JavaFX**, um eine moderne Benutzeroberfläche und eine erweiterbare Backend-Integration zu bieten. Der Benutzer kann sich einloggen, die TAN-Freigabe durchführen und eine JNLP-Datei verarbeiten lassen.
 
 ## Anforderungen
 
@@ -41,11 +41,18 @@ Alle Abhängigkeiten sind in der Datei `build.gradle` definiert.
    ```bash
    ./gradlew run
    ```
+   
 
 4. **Anwendung als ausführbare JAR starten**:
+   Die App erkennt das Betriebssystem und läd die korrekten JavaFx Libs:
+   ```bash
+   "C:\Program Files\Zulu\zulu-21\bin\java" -jar comdirect-[YOUR VERSION].jar
+   ```
+
+5. **Alternativ: Anwendung als ausführbare JAR starten mit gesonderten JavaFx Libs (bei Fehlern)**:
    Die JavaFx Libraries (nicht die JARs) müssen gesondert gedownloaded, entpackt und eingebunden werden:
    ```bash
-   "C:\Program Files\Zulu\zulu-21\bin\java" --module-path "C:\javafx-sdk-21.0.5\lib" --add-modules javafx.controls,javafx.fxml,javafx.web -jar comdirect.jar
+   "C:\Program Files\Zulu\zulu-21\bin\java" --module-path "C:\javafx-sdk-21.0.5\lib" --add-modules javafx.controls,javafx.fxml,javafx.web -jar comdirect-[YOUR VERSION].jar
    ```
 
    Ersetze `/path/to/java-21/` mit dem Verzeichnis, in dem sich dein Java 21 befindet.
