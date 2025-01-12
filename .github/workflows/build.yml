@@ -6,8 +6,19 @@ on:
       - release
 
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
+  build-and-package:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            jpackage_type: deb
+          - os: windows-latest
+            jpackage_type: exe
+          - os: macos-latest
+            jpackage_type: dmg
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
@@ -19,74 +30,45 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Download JavaFX SDK
+        run: |
+          if [[ $RUNNER_OS == "Windows" ]]; then
+            curl -L https://download2.gluonhq.com/openjfx/21.0.0/javafx-jdk-windows.zip -o javafx-sdk.zip
+            unzip javafx-sdk.zip -d javafx-sdk
+          elif [[ $RUNNER_OS == "macOS" ]]; then
+            curl -L https://download2.gluonhq.com/openjfx/21.0.0/javafx-jdk-macos.zip -o javafx-sdk.zip
+            unzip javafx-sdk.zip -d javafx-sdk
+          else
+            curl -L https://download2.gluonhq.com/openjfx/21.0.0/javafx-jdk-linux.zip -o javafx-sdk.zip
+            unzip javafx-sdk.zip -d javafx-sdk
+          fi
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
       - name: Build project
-        run: ./gradlew build
+        run: ./gradlew shadowJar
 
-      # Debug: List build artifacts
-      - name: List build artifacts
-        run: ls -l build/libs
-
-      - name: Determine version
-        id: version
+      - name: Package with jpackage
         run: |
-          version=$(grep 'version=' gradle.properties | cut -d'=' -f2)
-          echo "current_version=$version" >> $GITHUB_ENV
-          new_version=$(echo $version | awk -F. '{$NF += 1; OFS="."; print $0}')
-          echo "new_version=$new_version" >> $GITHUB_ENV
-
-      - name: Update version in gradle.properties
-        run: |
-          sed -i "s/version=$current_version/version=$new_version/" gradle.properties
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add gradle.properties
-          git commit -m "Bump version to $new_version"
-          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
-          git push origin release
-
-      - name: Check if tag already exists
-        id: check_tag
-        run: |
-          if git ls-remote --tags origin | grep -q "refs/tags/v$new_version$"; then
-            echo "exists=true" >> $GITHUB_ENV
-          else
-            echo "exists=false" >> $GITHUB_ENV
-          fi
-
-      - name: Create Git tag
-        if: env.exists == 'false'
-        run: |
-          git tag "v$new_version"
-          git push origin "v$new_version"
-
-      - name: Create GitHub Release
-        if: env.exists == 'false'
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: "v${{ env.new_version }}"
-          release_name: "Release v${{ env.new_version }}"
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-
-      - name: Debug upload URL
-        run: echo "${{ steps.create_release.outputs.upload_url }}"
-
-      - name: Check JAR file existence
-        run: ls -l build/libs/comdirect-1.0.0.jar
+          jpackage \
+            --input build/libs \
+            --main-jar comdirect-1.0.0-all.jar \
+            --main-class comdirect.Main \
+            --name ComdirectApp \
+            --type ${{ matrix.jpackage_type }} \
+            --module-path javafx-sdk/lib \
+            --add-modules javafx.controls,javafx.fxml,javafx.web \
+            --icon src/main/resources/icon.ico \
+            --app-version ${{ github.run_number }} \
+            --dest build/dist
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/comdirect-1.0.0.jar
-          asset_name: comdirect-${{ env.new_version }}.jar
-          asset_content_type: application/java-archive
+          asset_path: build/dist/ComdirectApp.${{ matrix.jpackage_type }}
+          asset_name: ComdirectApp-${{ matrix.os }}.${{ matrix.jpackage_type }}
+          asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
-
