@@ -1,18 +1,20 @@
 comdirect:
+  login:
+    autoLogin: false
+    autoCloseCookieBanner: false
+    useDifferentLoginUrl: true
+    url: "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1"
+    user: ""
+    pin: ""
+    autoRedirectAfterLogin: false # since the login url is the same as the protrader url, we do not need to reload the page
+    urlRedirect: "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1"
+  ui:
+    loadHomePageAtStartup: true # May be disabled on auto login
+    autoCloseCookieBannerAtStartup: true
+    urlHome: "https://kunde.comdirect.de"
+    enableJavascriptDebug: true
+    enableJavascriptConsole: true
   browser:
     defaultBrowser: "chromium" # Mögliche Werte: chromium, firefox, webkit
     edgePath: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
-    autoCloseCookieBanner: true
     headless: true
-  ui:
-    homeUrl: "https://www.google.com"
-    enableJavascriptDebug: true
-    enableJavascriptConsole: true
-  login:
-    url0: "https://kunde.comdirect.de/itx/tfe/starten?execution=e7s1"
-    url1: "https://kunde.comdirect.de/itx/tfe/starten?execution=e1s1"
-    url2: "https://kunde.comdirect.de/lp/wt/login?execution=e1s1"
-    url3: "https://kunde.comdirect.de"
-    postUrl: "https://kunde.comdirect.de/lp/wt/login?execution=e1s1&afterTimeout=true#loginAction"
-    user: ""
-    pin: ""

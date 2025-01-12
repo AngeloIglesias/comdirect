@@ -81,8 +81,13 @@ public class BrowseService {
         // Warte, bis die Seite vollständig geladen ist
         page.waitForLoadState();
 
+        addToHistory(url);
+
         // Cookie-Banner schließen (falls sichtbar)
-        BrowserUtils.closeCookieBanner(page, config.getBrowser().isAutoCloseCookieBanner());
+        BrowserUtils.closeCookieBanner(page);
+
+        // Warte, bis die Seite vollständig geladen ist
+        page.waitForLoadState();
 
         addToHistory(url);
 
@@ -93,9 +98,6 @@ public class BrowseService {
     public String performLogin(String username, String password) {
         // Warte, bis die Login-Seite vollständig geladen ist
         page.waitForLoadState();
-
-        // Cookie-Banner schließen (falls sichtbar)
-        BrowserUtils.closeCookieBanner(page, config.getBrowser().isAutoCloseCookieBanner());
 
         // Benutzername und Passwort eingeben
         page.fill("input[name='loginForm:userName']", username);

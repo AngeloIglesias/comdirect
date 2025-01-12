@@ -71,7 +71,18 @@ public class MainController {
             }
         });
 
-        displayHtmlInWebView(browseService.navigateToAndCloseCookieBanner(config.getLogin().getUrl3()));
+        if(config.getUi().isLoadHomePageAtStartup()) {
+            if (config.getUi().isAutoCloseCookieBannerAtStartup()) {
+                // Cookie-Banner schließen
+                displayHtmlInWebView(browseService.navigateToAndCloseCookieBanner(config.getUi().getUrlHome()));
+            } else {
+                // Standardseite anzeigen
+                displayHtmlInWebView(browseService.navigateTo(config.getUi().getUrlHome()));
+            }
+        }
+        if(config.getLogin().isAutoLogin()) {
+            onLoginClick(null);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +223,7 @@ public class MainController {
 
     @FXML
     protected void onHomeClick() {
-        displayHtmlInWebView(browseService.navigateTo(config.getUi().getHomeUrl()));
+        displayHtmlInWebView(browseService.navigateTo(config.getUi().getUrlHome()));
     }
 
     @FXML
@@ -249,6 +260,17 @@ public class MainController {
     @FXML
     public void onLoginClick(ActionEvent actionEvent) {
         try {
+            if(config.getLogin().isUseDifferentLoginUrl())
+            {
+                if(config.getLogin().isAutoCloseCookieBanner()) {
+                    // Cookie-Banner schließen und Login-Seite anzeigen
+                    displayHtmlInWebView(browseService.navigateToAndCloseCookieBanner(config.getLogin().getUrl()));
+                } else {
+                    // Login-Seite anzeigen
+                    displayHtmlInWebView(browseService.navigateTo(config.getLogin().getUrl()));
+                }
+            }
+
             BrowserUtils.requestCredentialsFromUser(config);
 
             // Login ausführen

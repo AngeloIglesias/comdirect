@@ -9,33 +9,36 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "comdirect")
 public class ComdirectConfig {
 
-    private BrowserConfig browser;
-    private UiConfig ui;
     private LoginConfig login;
+    private UiConfig ui;
+    private BrowserConfig browser;
 
     @Data
-    public static class BrowserConfig {
-        private String defaultBrowser;
-        private String edgePath;
+    public static class LoginConfig {
+        private boolean useDifferentLoginUrl;
+        private boolean autoLogin;
         private boolean autoCloseCookieBanner;
-        private boolean headless;
+        private String url;
+        private String urlLogin;
+        private String user;
+        private String pin;
+        private boolean autoRedirectAfterLogin;
+        private String urlRedirect;
     }
 
     @Data
     public static class UiConfig {
-        private String homeUrl;
+        private boolean loadHomePageAtStartup;
+        private boolean autoCloseCookieBannerAtStartup;
+        private String urlHome;
         private boolean enableJavascriptDebug;
         private boolean enableJavascriptConsole;
     }
 
     @Data
-    public static class LoginConfig {
-        private String url0;
-        private String url1;
-        private String url2;
-        private String url3;
-        private String postUrl;
-        private String user;
-        private String pin;
+    public static class BrowserConfig {
+        private String defaultBrowser;
+        private String edgePath;
+        private boolean headless;
     }
 }

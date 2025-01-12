@@ -122,12 +122,10 @@ public class BrowserUtils {
         alert.showAndWait();
     }
 
-    public static void closeCookieBanner(Page page, boolean autoCloseCookieBanner) {
-        if(autoCloseCookieBanner) {
-            if (page.locator("button:has-text('Alle akzeptieren')").isVisible()) {
-                page.click("button:has-text('Alle akzeptieren')");
-                System.out.println("Cookie-Banner akzeptiert.");
-            }
+    public static void closeCookieBanner(Page page) {
+        if (page.locator("button:has-text('Alle akzeptieren')").isVisible()) {
+            page.click("button:has-text('Alle akzeptieren')");
+            System.out.println("Cookie-Banner akzeptiert.");
         }
     }
 
