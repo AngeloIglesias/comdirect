@@ -37,8 +37,11 @@ public class ComdirectConfig {
 
     @Data
     public static class BrowserConfig {
+        private boolean headless;
+        private boolean allowDownloads;
+        private boolean overrideDefaultDownloadFolder;
+        private String downloadFolder;
         private String defaultBrowser;
         private String edgePath;
-        private boolean headless;
     }
 }

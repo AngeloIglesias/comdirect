@@ -15,6 +15,10 @@ comdirect:
     enableJavascriptDebug: true
     enableJavascriptConsole: true
   browser:
+    headless: false
+    allowDownloads: true
+    overrideDefaultDownloadFolder: false
+    downloadFolder: "C:\\Users\\${env:USERNAME}\\Downloads"
     defaultBrowser: "chromium" # Mögliche Werte: chromium, firefox, webkit
     edgePath: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
-    headless: true
+

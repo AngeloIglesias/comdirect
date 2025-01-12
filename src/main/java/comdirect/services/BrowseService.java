@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class BrowseService {
     public Browser browser;
 
     public BrowserContext context;
+    public Browser.NewContextOptions contextOptions;
     public Page page;
 
 
@@ -51,10 +53,40 @@ public class BrowseService {
         // Playwright initialisieren
         playwright = Playwright.create();
         browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(config.getBrowser().isHeadless()));
+        initBrowser();
+    }
 
+    private void initBrowser() {
         // Browser-Kontext und Seite erstellen
+        contextOptions = new Browser.NewContextOptions();
+        contextOptions.setAcceptDownloads(config.getBrowser().isAllowDownloads());
         context = browser.newContext();
         page = context.newPage();
+        applyDownloadSettings();
+    }
+
+    private void applyDownloadSettings() {
+            // Warte auf den Download
+            page.onDownload(download -> {
+                try {
+                    System.out.println("Download gestartet: " + download.url());
+
+                    if(config.getBrowser().isOverrideDefaultDownloadFolder())
+                    {
+                        // Lege den Zielpfad für den Download fest
+                        Path downloadPath = Paths.get(config.getBrowser().getDownloadFolder() + download.suggestedFilename());
+                        download.saveAs(downloadPath);
+                        System.out.println("Download abgeschlossen: " + downloadPath);
+                    }
+                    else
+                    {
+                        Path downloadPath = download.path();
+                        System.out.println("Datei wurde gespeichert unter: " + downloadPath);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
     }
 
     /**
@@ -204,8 +236,7 @@ public class BrowseService {
                     break;
             }
 
-            context = browser.newContext();
-            page = context.newPage();
+            initBrowser();
             System.out.println("Browser gewechselt zu: " + browserType);
         } catch (Exception e) {
             System.err.println("Fehler beim Wechseln des Browsers: " + e.getMessage());

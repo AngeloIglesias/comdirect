@@ -279,12 +279,12 @@ public class MainController {
                 }
             }
 
-            BrowserUtils.requestCredentialsFromUser(config);
-
-            // Login ausführen
-            String responseHtml = browseService.performLogin(config.getLogin().getUser(), config.getLogin().getPin());
-            displayHtmlInWebView(responseHtml);
-
+            if( BrowserUtils.requestCredentialsFromUser(config))
+            {
+                // Login ausführen
+                String responseHtml = browseService.performLogin(config.getLogin().getUser(), config.getLogin().getPin());
+                displayHtmlInWebView(responseHtml);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());

@@ -82,20 +82,18 @@ public class BrowserUtils {
     }
 
 
-    static void requestCredentialsFromUser(ComdirectConfig config1) {
+    static boolean requestCredentialsFromUser(ComdirectConfig config1) {
         if (config1.getLogin().getUser() == null || config1.getLogin().getUser().isEmpty()) {
             TextInputDialog userDialog = new TextInputDialog();
             userDialog.setTitle("Zugangsnummer erforderlich");
             userDialog.setHeaderText("Bitte geben Sie Ihre Zugangsnummer ein:");
             userDialog.setContentText("Zugangsnummer:");
             Optional<String> result = userDialog.showAndWait();
-            result.ifPresentOrElse(
-                    userNumber -> config1.getLogin().setUser(userNumber),
-                    () -> {
-                        showError("Fehler", "Keine Zugangsnummer eingegeben", "Die Anwendung wird beendet.");
-                        System.exit(1);
-                    }
-            );
+            if( result.isEmpty())
+            {
+                return false;
+            }
+            result.ifPresent(userNumber -> config1.getLogin().setUser(userNumber));
         }
 
         if (config1.getLogin().getPin() == null || config1.getLogin().getPin().isEmpty()) {
@@ -104,14 +102,13 @@ public class BrowserUtils {
             pinDialog.setHeaderText("Bitte geben Sie Ihre PIN ein:");
             pinDialog.setContentText("PIN:");
             Optional<String> result = pinDialog.showAndWait();
-            result.ifPresentOrElse(
-                    pin -> config1.getLogin().setPin(pin), // ToDo: Never save PIN/Password readably!
-                    () -> {
-                        showError("Fehler", "Keine PIN eingegeben", "Die Anwendung wird beendet.");
-                        System.exit(1);
-                    }
-            );
+            if( result.isEmpty())
+            {
+                return false;
+            }
+            result.ifPresent(pin -> config1.getLogin().setPin(pin)); // ToDo: Never save PIN/Password readably!
         }
+        return true;
     }
 
     static void showError(String title, String header, String content) {
