@@ -5,6 +5,7 @@ import comdirect.services.BrowseService;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.web.WebView;
@@ -97,44 +98,6 @@ public class MainController {
             (enableJavaScriptConsole ? BrowserUtils.addConsoleLogCode() : "") +
             BrowserUtils.addBridgeCode() +
             "</script>";
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Event handlers for JavaFX controls
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @FXML
-    protected void onBackClick() {
-        displayHtmlInWebView(browseService.navigateBack());
-    }
-
-    @FXML
-    protected void onHomeClick() {
-        displayHtmlInWebView(browseService.navigateTo(config.getUi().getHomeUrl()));
-    }
-
-    @FXML
-    protected void onAddressEntered() {
-        String url = addressBar.getText();
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            url = "https://" + url;
-        }
-        displayHtmlInWebView(browseService.navigateTo(url));
-    }
-
-    @FXML
-    protected void onStartApplicationClick() {
-        try { // ToDo: Implement the auto login, download and webstart functionality, here
-            BrowserUtils.requestCredentialsFromUser(config);
-
-            // Login ausführen
-            String responseHtml = browseService.performLogin(config.getLogin().getUser(), config.getLogin().getPin());
-            displayHtmlInWebView(responseHtml);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
-        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,12 +201,63 @@ public class MainController {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Event handlers for JavaFX controls
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @FXML
+    protected void onBackClick() {
+        displayHtmlInWebView(browseService.navigateBack());
+    }
+
+    @FXML
+    protected void onHomeClick() {
+        displayHtmlInWebView(browseService.navigateTo(config.getUi().getHomeUrl()));
+    }
+
+    @FXML
+    protected void onAddressEntered() {
+        String url = addressBar.getText();
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://" + url;
+        }
+        displayHtmlInWebView(browseService.navigateTo(url));
+    }
+
+    @FXML
+    protected void onStartApplicationClick() {
+        // ToDo: Implement the auto login, download and webstart functionality, here
+        BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", "Not implemented yet.");
+    }
+
+    @FXML
     public void onForwardClick(ActionEvent actionEvent) {
         displayHtmlInWebView(browseService.navigateForward());
     }
 
+    @FXML
     public void onBrowserSelectionChanged(ActionEvent actionEvent) {
         String selectedBrowser = browserSelector.getValue();
         browseService.changeBrowser(selectedBrowser);
+    }
+
+    @FXML
+    public void onRefreshClick(ActionEvent actionEvent) {
+        displayHtmlInWebView(browseService.refreshPage());
+    }
+
+    @FXML
+    public void onLoginClick(ActionEvent actionEvent) {
+        try {
+            BrowserUtils.requestCredentialsFromUser(config);
+
+            // Login ausführen
+            String responseHtml = browseService.performLogin(config.getLogin().getUser(), config.getLogin().getPin());
+            displayHtmlInWebView(responseHtml);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            BrowserUtils.showError("Fehler", "Aktion fehlgeschlagen", e.getMessage());
+        }
     }
 }

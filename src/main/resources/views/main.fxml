@@ -10,12 +10,14 @@
     <top>
         <ToolBar>
             <HBox spacing="5.0" HBox.hgrow="ALWAYS">
+                <Button text="Aktualisieren" onAction="#onRefreshClick" />
                 <Button text="Zurück" onAction="#onBackClick" />
                 <Button text="Vor" onAction="#onForwardClick" />
                 <Button text="Home" onAction="#onHomeClick" />
                 <TextField fx:id="addressBar" promptText="Adresse eingeben und Enter drücken" onAction="#onAddressEntered" HBox.hgrow="ALWAYS"/>
                 <ComboBox fx:id="browserSelector" onAction="#onBrowserSelectionChanged"/>
-                <Button text="Start Application" onAction="#onStartApplicationClick" />
+                <Button text="Login" onAction="#onLoginClick" />
+                <Button text="ProTrader" onAction="#onStartApplicationClick" />
             </HBox>
         </ToolBar>
     </top>

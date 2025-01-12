@@ -210,5 +210,9 @@ public class BrowseService {
         }
     }
 
-
+    public String refreshPage() {
+        page.reload();
+        page.waitForLoadState();
+        return page.content();
+    }
 }
