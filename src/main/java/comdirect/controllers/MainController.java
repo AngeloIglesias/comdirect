@@ -185,8 +185,15 @@ public class MainController {
             }
 
             if (href.startsWith("#")) {
-                // Interner Anker, füge zur aktuellen URL hinzu
-                return browseService.page.url() + href;
+                // Interner Anker, prüfe, ob der Anker bereits in der aktuellen URL vorhanden ist
+                String currentUrl = browseService.page.url();
+                if (currentUrl.contains(href)) {
+                    // Anker ist bereits vorhanden, URL unverändert zurückgeben
+                    return currentUrl;
+                }
+
+                // Anker hinzufügen, wenn er noch nicht vorhanden ist
+                return currentUrl + href;
             }
 
             if (href.startsWith("http://") || href.startsWith("https://")) {
@@ -202,6 +209,7 @@ public class MainController {
             return href; // Fallback auf den Original-Link
         }
     }
+
     private boolean isValidUrl(String url) {
         try {
             new java.net.URI(url);
