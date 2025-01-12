@@ -71,7 +71,7 @@ public class MainController {
 
                 // Registriere die Bridge nur, wenn sie nicht bereits registriert ist
                 JSObject window = (JSObject) webView.getEngine().executeScript("window");
-                BrowserUtils.WebViewBridge bridge = new BrowserUtils.WebViewBridge(this);
+                WebViewBridge bridge = new WebViewBridge(this);
                 window.setMember("bridge", bridge);
             }
         });

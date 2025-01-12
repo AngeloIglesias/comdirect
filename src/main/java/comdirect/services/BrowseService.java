@@ -68,6 +68,14 @@ public class BrowseService {
         context = browser.newContext();
         page = context.newPage();
         applyDownloadSettings();
+
+        page.onLoad((page) -> System.out.println("Seite geladen: " + page.url()));
+        page.onFrameNavigated((frame) -> System.out.println("Frame navigiert: " + frame.url()));
+//        page.onRequest((request) -> System.out.println("Anfrage: " + request.url()));
+//        page.onResponse((response) -> System.out.println("Antwort: " + response.url()));
+//        page.onRequestFailed((request) -> System.out.println("Anfrage fehlgeschlagen: " + request.url()));
+//        page.onRequestFinished((request) -> System.out.println("Anfrage beendet: " + request.url()));
+
     }
 
     private void applyDownloadSettings() {
@@ -259,4 +267,10 @@ public class BrowseService {
         page.waitForLoadState();
         return page.content();
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Event Handling
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 }
