@@ -45,7 +45,7 @@ Alle Abhängigkeiten sind in der Datei `build.gradle` definiert.
 4. **Anwendung als ausführbare JAR starten**:
    Die JavaFx Libraries (nicht die JARs) müssen gesondert gedownloaded, entpackt und eingebunden werden:
    ```bash
-   java --module-path "C:\javafx-sdk-23.0.1\lib" --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.web --add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED --add-exports javafx.base/com.sun.javafx.event=ALL-UNNAMED -jar app.jar
+   "C:\Program Files\Zulu\zulu-21\bin\java" --module-path "C:\javafx-sdk-21.0.5\lib" --add-modules javafx.controls,javafx.fxml,javafx.web -jar comdirect.jar
    ```
 
    Ersetze `/path/to/java-21/` mit dem Verzeichnis, in dem sich dein Java 21 befindet.
