@@ -37,18 +37,15 @@ jobs:
           java-version: '21'
 
       - name: Download JavaFX SDK
-        shell: bash
         run: |
           echo "Downloading JavaFX SDK from ${{ matrix.javafx_url }}"
-          if [[ $RUNNER_OS == "Windows" ]]; then
-            echo "Running on Windows"
-            curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
-            powershell -Command "Expand-Archive -Path javafx-sdk.zip -DestinationPath javafx-sdk"
-          else
-            echo "Running on Linux/macOS"
+          if ($env:RUNNER_OS -eq "Windows") {
+            Invoke-WebRequest ${{ matrix.javafx_url }} -OutFile javafx-sdk.zip
+            Expand-Archive -Path javafx-sdk.zip -DestinationPath javafx-sdk
+          } else {
             curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
             unzip javafx-sdk.zip -d javafx-sdk
-          fi
+          }
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
