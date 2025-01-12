@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class BrowseService {
@@ -24,6 +26,7 @@ public class BrowseService {
 
     private int currentIndex = -1; // Index der aktuellen Seite
 
+    private final AtomicInteger downloadsActive = new AtomicInteger(0);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Var (Stateful Bean, ToDo: Externalize state to a separate class)
@@ -69,22 +72,25 @@ public class BrowseService {
             // Warte auf den Download
             page.onDownload(download -> {
                 try {
+                    downloadsActive.addAndGet(1);
+
                     System.out.println("Download gestartet: " + download.url());
 
-                    if(config.getBrowser().isOverrideDefaultDownloadFolder())
-                    {
+                    if (config.getBrowser().isOverrideDefaultDownloadFolder()) {
                         // Lege den Zielpfad für den Download fest
                         Path downloadPath = Paths.get(config.getBrowser().getDownloadFolder() + download.suggestedFilename());
                         download.saveAs(downloadPath);
                         System.out.println("Download abgeschlossen: " + downloadPath);
-                    }
-                    else
-                    {
+                    } else {
                         Path downloadPath = download.path();
                         System.out.println("Datei wurde gespeichert unter: " + downloadPath);
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     e.printStackTrace();
+                }
+                finally {
+                    downloadsActive.addAndGet(-1);
                 }
             });
     }
@@ -107,13 +113,7 @@ public class BrowseService {
     /// @param url
 
     public String navigateToAndCloseCookieBanner(String url) {
-        // Login-Seite laden
-        page.navigate(url);
-
-        // Warte, bis die Seite vollständig geladen ist
-        page.waitForLoadState();
-
-        addToHistory(url);
+        navigateTo(url);
 
         // Cookie-Banner schließen (falls sichtbar)
         BrowserUtils.closeCookieBanner(page);
@@ -146,6 +146,7 @@ public class BrowseService {
     }
 
     public String navigateTo(String url) {
+        int downloadCount = downloadsActive.get();
         try {
             // Navigiere zur URL
             page.navigate(url);
@@ -158,10 +159,17 @@ public class BrowseService {
             // Gebe den HTML-Inhalt zurück
             return page.content();
         } catch (Exception e) {
+            // Prüfe, ob ein Download aktiv ist, und ignoriere Fehler in diesem Fall
+            if (downloadsActive.get() >= downloadCount) {
+                System.out.println("Fehler während eines Downloads ignoriert: " + e.getMessage());
+                return page.content();
+            }
+            // Andernfalls gebe einen generischen Fehler aus
             System.err.println("Fehler beim Laden der Seite: " + e.getMessage());
             return "<html><body><h1>Fehler</h1><p>Die Seite konnte nicht geladen werden.</p></body></html>";
         }
     }
+
 
     public String navigateBack() {
         if (currentIndex > 0) {
