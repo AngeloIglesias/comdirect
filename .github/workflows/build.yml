@@ -54,7 +54,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build project
-        run: ./gradlew bootJar
+        run: ./gradlew shadowJar
 
       - name: Package with jpackage
         run: |
