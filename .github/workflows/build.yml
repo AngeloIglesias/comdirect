@@ -79,7 +79,7 @@ jobs:
             --app-version ${{ github.run_number }} \
             --dest build/dist
 
-      - name: Debug check packaged files
+      - name: Debug: Check packaged files
         run: ls -l build/dist
 
       - name: Upload Release Asset
