@@ -36,28 +36,18 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Download and unpack JavaFX SDK
+      - name: Download JavaFX SDK
         shell: bash
         run: |
           echo "Downloading JavaFX SDK from ${{ matrix.javafx_url }}"
-          curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
           if [[ $RUNNER_OS == "Windows" ]]; then
             echo "Running on Windows"
+            curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
             powershell -Command "Expand-Archive -Path javafx-sdk.zip -DestinationPath javafx-sdk"
           else
             echo "Running on Linux/macOS"
+            curl -L ${{ matrix.javafx_url }} -o javafx-sdk.zip
             unzip javafx-sdk.zip -d javafx-sdk
-          fi
-
-      - name: Copy JavaFX native libraries
-        run: |
-          mkdir -p build/libs/native
-          if [[ $RUNNER_OS == "Windows" ]]; then
-            cp javafx-sdk/bin/*.dll build/libs/native/
-          elif [[ $RUNNER_OS == "Linux" ]]; then
-            cp javafx-sdk/bin/*.so build/libs/native/
-          elif [[ $RUNNER_OS == "macOS" ]]; then
-            cp javafx-sdk/bin/*.dylib build/libs/native/
           fi
 
       - name: Make gradlew executable
@@ -74,13 +64,10 @@ jobs:
             --main-class comdirect.Main \
             --name ComdirectApp \
             --type ${{ matrix.jpackage_type }} \
-            --runtime-image build/libs/native \
+            --module-path javafx-sdk/lib \
             --add-modules javafx.controls,javafx.fxml,javafx.web \
             --app-version ${{ github.run_number }} \
             --dest build/dist
-
-      - name: Debug: Check packaged files
-        run: ls -l build/dist
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
