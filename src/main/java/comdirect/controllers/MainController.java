@@ -6,7 +6,6 @@ import comdirect.services.BrowseService;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.web.WebView;
@@ -14,9 +13,6 @@ import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 
 @Controller
 public class MainController {
@@ -130,10 +126,10 @@ public class MainController {
         System.out.println("Link geklickt: " + href);
 
         try {
-            String absoluteUrl = resolveUrl(href);
+            String absoluteUrl = BrowserUtils.resolveUrl(href, browseService.page);
             System.out.println("Absolute URL: " + absoluteUrl);
 
-            if (!isValidUrl(absoluteUrl)) {
+            if (!BrowserUtils.isValidUrl(absoluteUrl)) {
                 BrowserUtils.showError("Fehler", "Ungültige URL", "Die URL \"" + absoluteUrl + "\" ist ungültig.");
                 return;
             }
@@ -157,76 +153,13 @@ public class MainController {
 
     private void handleBridgeRequest(String url) {
         if (url.startsWith("bridge://onLinkClicked")) {
-            String href = extractQueryParam(url, "href");
+            String href = BrowserUtils.extractQueryParam(url, "href");
             handleLinkClick(href);
         } else if (url.startsWith("bridge://onFormSubmitted")) {
-            String formData = extractQueryParam(url, "formData");
+            String formData = BrowserUtils.extractQueryParam(url, "formData");
             handleFormSubmission(formData);
         } else {
             System.out.println("Unbekannter Bridge-Event: " + url);
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Helper methods
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private String extractQueryParam(String url, String param) {
-        try {
-            String query = url.split("\\?")[1];
-            String[] pairs = query.split("&");
-            for (String pair : pairs) {
-                String[] keyValue = pair.split("=");
-                if (keyValue[0].equals(param)) {
-                    return URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Fehler beim Extrahieren des Parameters: " + e.getMessage());
-        }
-        return null;
-    }
-
-    private String resolveUrl(String href) {
-        try {
-            if (href.startsWith("//")) {
-                // Protokoll-relative URL ergänzen
-                return "https:" + href;
-            }
-
-            if (href.startsWith("#")) {
-                // Interner Anker, prüfe, ob der Anker bereits in der aktuellen URL vorhanden ist
-                String currentUrl = browseService.page.url();
-                if (currentUrl.contains(href)) {
-                    // Anker ist bereits vorhanden, URL unverändert zurückgeben
-                    return currentUrl;
-                }
-
-                // Anker hinzufügen, wenn er noch nicht vorhanden ist
-                return currentUrl + href;
-            }
-
-            if (href.startsWith("http://") || href.startsWith("https://")) {
-                // Absolute URL
-                return href;
-            }
-
-            // Relative URL in absolute URL umwandeln
-            String baseUrl = browseService.page.url();
-            return new java.net.URL(new java.net.URL(baseUrl), href).toString();
-        } catch (Exception e) {
-            System.err.println("Fehler beim Erstellen der absoluten URL: " + e.getMessage());
-            return href; // Fallback auf den Original-Link
-        }
-    }
-
-    private boolean isValidUrl(String url) {
-        try {
-            new java.net.URI(url);
-            return true;
-        } catch (Exception e) {
-            System.err.println("Ungültige URL: " + url);
-            return false;
         }
     }
 

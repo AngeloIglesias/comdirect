@@ -5,6 +5,8 @@ import comdirect.config.ComdirectConfig;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -123,6 +125,69 @@ public class BrowserUtils {
         if (page.locator("button:has-text('Alle akzeptieren')").isVisible()) {
             page.click("button:has-text('Alle akzeptieren')");
             System.out.println("Cookie-Banner akzeptiert.");
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Helper methods
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static String extractQueryParam(String url, String param) {
+        try {
+            String query = url.split("\\?")[1];
+            String[] pairs = query.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                if (keyValue[0].equals(param)) {
+                    return URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Extrahieren des Parameters: " + e.getMessage());
+        }
+        return null;
+    }
+
+    static String resolveUrl(String href, Page page) {
+        try {
+            if (href.startsWith("//")) {
+                // Protokoll-relative URL ergänzen
+                return "https:" + href;
+            }
+
+            if (href.startsWith("#")) {
+                // Interner Anker, prüfe, ob der Anker bereits in der aktuellen URL vorhanden ist
+                String currentUrl = page.url();
+                if (currentUrl.contains(href)) {
+                    // Anker ist bereits vorhanden, URL unverändert zurückgeben
+                    return currentUrl;
+                }
+
+                // Anker hinzufügen, wenn er noch nicht vorhanden ist
+                return currentUrl + href;
+            }
+
+            if (href.startsWith("http://") || href.startsWith("https://")) {
+                // Absolute URL
+                return href;
+            }
+
+            // Relative URL in absolute URL umwandeln
+            String baseUrl = page.url();
+            return new java.net.URL(new java.net.URL(baseUrl), href).toString();
+        } catch (Exception e) {
+            System.err.println("Fehler beim Erstellen der absoluten URL: " + e.getMessage());
+            return href; // Fallback auf den Original-Link
+        }
+    }
+
+    static boolean isValidUrl(String url) {
+        try {
+            new java.net.URI(url);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Ungültige URL: " + url);
+            return false;
         }
     }
 }
