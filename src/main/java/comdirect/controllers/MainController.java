@@ -45,6 +45,7 @@ public class MainController {
     private BookmarkManager bookmarkManager;
 
     private boolean isLoading;
+    private WebViewBridge bridge;
 
     @FXML
     public void initialize() {
@@ -67,13 +68,13 @@ public class MainController {
 
                 // Registriere die Bridge nur, wenn sie nicht bereits registriert ist
                 JSObject window = (JSObject) webView.getEngine().executeScript("window");
-                WebViewBridge bridge = new WebViewBridge(this);
+                bridge = new WebViewBridge(this, browseService);
                 window.setMember("bridge", bridge);
             }
         });
         webView.getEngine().locationProperty().addListener((obs, oldLocation, newLocation) -> {
             if (newLocation.startsWith("bridge://")) {
-                handleBridgeRequest(newLocation);
+                bridge.handleBridgeRequest(newLocation);
             }
         });
 
@@ -95,7 +96,7 @@ public class MainController {
     /// WebView-Interaktionen
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private synchronized void displayHtmlInWebView(String htmlContent) {
+    synchronized void displayHtmlInWebView(String htmlContent) {
         if (isLoading) return;
         isLoading = true;
         Platform.runLater(() -> {
@@ -115,52 +116,6 @@ public class MainController {
             (enableJavaScriptConsole ? BrowserUtils.addConsoleLogCode() : "") +
             BrowserUtils.addBridgeCode() +
             "</script>";
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Event handlers for WebView interactions
-    /// These methods are called from JavaScript code in the WebView (see BrowserUtils.addBridgeCode())
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void handleLinkClick(String href) {
-        System.out.println("Link geklickt: " + href);
-
-        try {
-            String absoluteUrl = BrowserUtils.resolveUrl(href, browseService.page);
-            System.out.println("Absolute URL: " + absoluteUrl);
-
-            if (!BrowserUtils.isValidUrl(absoluteUrl)) {
-                BrowserUtils.showError("Fehler", "Ungültige URL", "Die URL \"" + absoluteUrl + "\" ist ungültig.");
-                return;
-            }
-
-            displayHtmlInWebView(browseService.navigateTo(absoluteUrl));
-        } catch (Exception e) {
-            e.printStackTrace();
-            BrowserUtils.showError("Fehler", "Link-Navigation fehlgeschlagen", e.getMessage());
-        }
-    }
-
-    public void handleFormSubmission(String formDataJson) {
-        System.out.println("Formular abgeschickt: " + formDataJson);
-        try {
-            displayHtmlInWebView(browseService.postForm(formDataJson));
-        } catch (Exception e) {
-            e.printStackTrace();
-            BrowserUtils.showError("Fehler", "Formular-Verarbeitung fehlgeschlagen", e.getMessage());
-        }
-    }
-
-    private void handleBridgeRequest(String url) {
-        if (url.startsWith("bridge://onLinkClicked")) {
-            String href = BrowserUtils.extractQueryParam(url, "href");
-            handleLinkClick(href);
-        } else if (url.startsWith("bridge://onFormSubmitted")) {
-            String formData = BrowserUtils.extractQueryParam(url, "formData");
-            handleFormSubmission(formData);
-        } else {
-            System.out.println("Unbekannter Bridge-Event: " + url);
-        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
