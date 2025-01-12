@@ -66,6 +66,7 @@ jobs:
             --type ${{ matrix.jpackage_type }} \
             --module-path javafx-sdk/lib \
             --add-modules javafx.controls,javafx.fxml,javafx.web \
+            --icon src/main/resources/icon.ico \
             --app-version ${{ github.run_number }} \
             --dest build/dist
 
